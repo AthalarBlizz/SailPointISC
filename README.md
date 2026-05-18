@@ -9,7 +9,7 @@ This repository demonstrates how to use Claude Code alongside the ISC REST API a
 build those integrations quickly and correctly. The material was presented live at SailPoint
 DevDays 2026.
 
-The slides are in [`devdays2026_FINAL.pdf`](devdays2026_FINAL.pdf).
+The slides are in [`devdays2026.pdf`](devdays2026.pdf).
 
 ---
 
