@@ -1,0 +1,35 @@
+# API specs — cloned separately per getting-started.md
+api-specs/
+
+# Internal / presentation files
+*.pptx
+*.pdf
+!devdays2026_FINAL.pdf
+*.csv
+SUMMARY.md
+PROPOSAL.md
+TALK_TRACK.md
+scenario2_story.md
+slides_draft.md
+BIO.md
+INBOX/
+FINAL/
+
+# Test and build scripts
+buildup/
+src/scenario1_disable_identity.py
+src/*.txt
+
+# Claude Code project settings
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# macOS
+.DS_Store

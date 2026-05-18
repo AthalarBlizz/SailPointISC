@@ -1,0 +1,60 @@
+(shared-tools) aliciagutschow@Alicias-MacBook-Pro-2 src % python3 scenario2_training_compliance.py
+============================================================
+Clinical Staff Training Compliance — Nightly Run
+Date: 2026-05-05
+============================================================
+
+Cole Aaronson (Medical/Surgical)
+    Certifications current — no action required
+
+Lucy Barret (Pediatrics)
+    Expiring: ALS — requesting renewal training enrollment
+    Access request submitted: ALS renewal training
+    [NOTIFICATION → Jordan Sullivan <Jordan.Sullivan@sailpointdemo.com>]
+      Training Enrollment Requested: Lucy Barret — Certification(s) expiring within 30 days: ALS
+
+Carla Espinosa (Emergency Department)
+    Expiring: PALS — requesting renewal training enrollment
+    Access request submitted: PALS renewal training
+    [NOTIFICATION → Jordan Sullivan <Jordan.Sullivan@sailpointdemo.com>]
+      Training Enrollment Requested: Carla Espinosa — Certification(s) expiring within 30 days: PALS
+
+Sean Kelly (Emergency Department)
+    Already on LeaveOfAbsence — no change needed
+
+Denise Mahoney (Medical/Surgical)
+    Expiring: ALS — requesting renewal training enrollment
+    Access request submitted: ALS renewal training
+    [NOTIFICATION → Jordan Sullivan <Jordan.Sullivan@sailpointdemo.com>]
+      Training Enrollment Requested: Denise Mahoney — Certification(s) expiring within 30 days: ALS
+
+Keith Meister (ICU)
+    Certifications current — no action required
+
+Laverne Roberts (Pediatrics)
+    Lapsed: PALS — suspending clinical access
+    Lifecycle state → LeaveOfAbsence
+    [NOTIFICATION → Jordan Sullivan <Jordan.Sullivan@sailpointdemo.com>]
+      Access Suspended: Laverne Roberts — Lapsed certification(s): PALS
+
+Danni Sullivan (Medical/Surgical)
+    Certification renewed: ALS — restoring access
+    Lifecycle state → Active
+    [NOTIFICATION → Jordan Sullivan <Jordan.Sullivan@sailpointdemo.com>]
+      Access Restored: Danni Sullivan — Certification(s) renewed: ALS
+
+Jill Tracy (Oncology)
+    Certifications current — no action required
+
+============================================================
+HR COMPLIANCE REPORT
+============================================================
+  Cole Aaronson        Medical/Surgical          COMPLIANT                 —
+  Lucy Barret          Pediatrics                ENROLLMENT REQUESTED      ALS
+  Carla Espinosa       Emergency Department      ENROLLMENT REQUESTED      PALS
+  Sean Kelly           Emergency Department      ON LEAVE                  ALS
+  Denise Mahoney       Medical/Surgical          ENROLLMENT REQUESTED      ALS
+  Keith Meister        ICU                       COMPLIANT                 —
+  Laverne Roberts      Pediatrics                SUSPENDED                 PALS
+  Danni Sullivan       Medical/Surgical          RESTORED                  ALS
+  Jill Tracy           Oncology                  COMPLIANT                 —
