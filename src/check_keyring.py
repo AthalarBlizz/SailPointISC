@@ -1,23 +1,26 @@
 """
 Keyring Check — Verify your ISC credentials are stored correctly.
 
-Run this after setup_keyring.py to confirm everything is in place
-before running any other scripts.
+Run this after setup_keyring.py. Does not call ISC — only reads the keychain.
 """
 
-import keyring
+import sys
+from pathlib import Path
 
-base_url      = keyring.get_password("sailpoint", "base_url")
-client_id     = keyring.get_password("sailpoint", "client_id")
-client_secret = keyring.get_password("sailpoint", "client_secret")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from isc_credentials import KEYRING_SERVICE, get_credentials, CredentialsNotFoundError
 
 print("Keyring Check")
 print("=" * 40)
-print(f"base_url:      {base_url or 'NOT SET'}")
-print(f"client_id:     {client_id or 'NOT SET'}")
-print(f"client_secret: {'SET' if client_secret else 'NOT SET'}")
 
-if all([base_url, client_id, client_secret]):
-    print("\nAll credentials present. Ready to run scripts.")
-else:
-    print("\nMissing credentials — run setup_keyring.py first.")
+try:
+    creds = get_credentials()
+except CredentialsNotFoundError as exc:
+    print(str(exc))
+    sys.exit(1)
+
+print(f"service:       {KEYRING_SERVICE}")
+print(f"base_url:      {creds.base_url}")
+print(f"client_id:     {creds.client_id}")
+print(f"client_secret: SET ({len(creds.client_secret)} chars)")
+print("\nAll credentials present. Ready for live ISC calls when you have network access.")

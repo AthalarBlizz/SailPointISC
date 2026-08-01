@@ -1,0 +1,5 @@
+# ISC agentic development — pin SDK <2.0 to keep versioned imports
+# (sailpoint.v2025 / sailpoint.v2026) matching this repo's scenarios and CLAUDE.md.
+sailpoint>=1.4.2,<2.0.0
+keyring>=25.0.0
+requests>=2.31.0

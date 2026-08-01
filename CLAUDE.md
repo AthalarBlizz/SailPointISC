@@ -11,8 +11,11 @@ These are scripts and automations — not web applications.
 
 - `api-specs/` — cloned from https://github.com/sailpoint-oss/api-specs — run `git pull` to stay current
 - `src/` — Python scripts for each scenario
+- `src/isc_credentials.py` — shared python-keyring loader for SAIL_* env vars
+- `.venv/` — local sandboxed virtualenv (see `scripts/bootstrap_env.sh`)
 - `docs/isc-development-guide.md` — ISC development patterns and reference (read this for domain context)
-- `docs/getting-started.md` — human setup guide
+- `docs/getting-started.md` — human setup guide (tenant + PAT)
+- `docs/local-dev-environment.md` — offline/local agentic coding environment
 
 ---
 
@@ -66,8 +69,11 @@ If it's not clear from context, ask: *"Is this code that will run on its own, or
 pip install sailpoint
 ```
 
-All API versions are included in a single package. Import from the specific versioned sub-module
-that matches where you found the endpoint in api-specs:
+This project pins `sailpoint>=1.4.2,<2.0.0` in `requirements.txt` (install via
+`scripts/bootstrap_env.sh`). All API versions ship in one package. Import from the
+versioned sub-module that matches where you found the endpoint in api-specs **and**
+where the SDK exposes the API class (in 1.4.2, most identity/access APIs are under
+`sailpoint.v2025`):
 
 ```python
 from sailpoint.v2026.api.identities_api import IdentitiesApi   # version matches your api-specs lookup
@@ -83,25 +89,34 @@ from sailpoint.configuration import Configuration               # shared, versio
 Credentials are stored in the OS keychain via `python-keyring` and loaded as environment variables
 at runtime. `Configuration()` reads these automatically.
 
-Keyring keys use lowercase names. Load them like this — do not deviate from this pattern:
+Keyring keys use lowercase names. Prefer the shared helper — do not deviate:
+
+```python
+from isc_credentials import load_credentials_into_env
+from sailpoint.configuration import Configuration
+
+load_credentials_into_env()
+configuration = Configuration()
+```
+
+Equivalent manual pattern (same keyring service/keys):
 
 ```python
 import keyring, os
 
-os.environ["SAIL_BASE_URL"]      = keyring.get_password("sailpoint", "base_url")
-os.environ["SAIL_CLIENT_ID"]     = keyring.get_password("sailpoint", "client_id")
+os.environ["SAIL_BASE_URL"] = keyring.get_password("sailpoint", "base_url")
+os.environ["SAIL_CLIENT_ID"] = keyring.get_password("sailpoint", "client_id")
 os.environ["SAIL_CLIENT_SECRET"] = keyring.get_password("sailpoint", "client_secret")
 ```
 
 To store credentials (one-time setup):
 
-```python
-keyring.set_password("sailpoint", "base_url",      "https://tenant.api.identitynow.com")
-keyring.set_password("sailpoint", "client_id",     "your-client-id")
-keyring.set_password("sailpoint", "client_secret", "your-client-secret")
+```bash
+python src/setup_keyring.py
 ```
 
 **Never hardcode credentials. Never ask the user for credentials in this session.**
+**Never write secrets to .env or source files — OS keychain via python-keyring only.**
 
 ---
 

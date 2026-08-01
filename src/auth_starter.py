@@ -12,22 +12,21 @@ PATTERN 2 — Direct REST
   Raw HTTP — works in any language or tool.
 
 One-time setup (store credentials in your OS keychain):
-  python3 -c "
-  import keyring
-  keyring.set_password('sailpoint', 'base_url',      'https://your-tenant.api.identitynow.com')
-  keyring.set_password('sailpoint', 'client_id',     'your-client-id')
-  keyring.set_password('sailpoint', 'client_secret', 'your-client-secret')
-  "
+  python src/setup_keyring.py
+  python src/check_keyring.py
 """
 
-import keyring
 import os
+import sys
+from pathlib import Path
+
 import requests
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from isc_credentials import load_credentials_into_env
+
 # Load credentials from OS keychain — never hardcode these
-os.environ["SAIL_BASE_URL"]      = keyring.get_password("sailpoint", "base_url")
-os.environ["SAIL_CLIENT_ID"]     = keyring.get_password("sailpoint", "client_id")
-os.environ["SAIL_CLIENT_SECRET"] = keyring.get_password("sailpoint", "client_secret")
+load_credentials_into_env()
 
 
 # =============================================================================

@@ -30,9 +30,23 @@ src/*.txt
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
 .env
+.env.*
 venv/
 .venv/
+
+# Local editor / tooling
+.idea/
+.vscode/
+*.swp
+
+# Node (curriculum web app)
+web/node_modules/
+web/dist/
 
 # macOS
 .DS_Store

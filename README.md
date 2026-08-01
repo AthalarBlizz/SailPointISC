@@ -17,11 +17,43 @@ The slides are in [`devdays2026.pdf`](devdays2026.pdf).
 
 ```
 src/                          Python scripts for each scenario
+web/                          Interactive curriculum learning app (GitHub Pages)
 docs/
-  getting-started.md          Setup guide — start here
+  getting-started.md          Setup guide — start here (needs an ISC tenant)
+  local-dev-environment.md    Local sandboxed coding env (no tenant required)
+  curriculum.md               Training path (editorial source; current as of 2026-07-31)
   isc-development-guide.md    Technical reference for API/SDK development
-CLAUDE.md                     Project context file for Claude Code
+scripts/bootstrap_env.sh      Create .venv, install deps, clone api-specs
+requirements.txt              sailpoint SDK + keyring + requests
+CLAUDE.md                     Project context file for Claude Code / Cursor
 ```
+
+## Local development (no tenant required)
+
+For agentic coding on your Mac without a SailPoint environment:
+
+```bash
+./scripts/bootstrap_env.sh
+source .venv/bin/activate
+python src/env_status.py
+```
+
+Secrets use **python-keyring** (macOS Keychain) when you later have a PAT — see
+[`docs/local-dev-environment.md`](docs/local-dev-environment.md).
+
+## Training curriculum (web app)
+
+Interactive reader + progress + conversational drills + guided labs:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+- Editorial markdown: [`docs/curriculum.md`](docs/curriculum.md)
+- App docs: [`web/README.md`](web/README.md)
+- **GitHub Pages:** enable Settings → Pages → Source: GitHub Actions, then push `web/` to `main`. Site: `https://<user>.github.io/2026DeveloperDays/`
 
 ---
 
