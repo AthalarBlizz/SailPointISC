@@ -54,97 +54,148 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     saveDualProgress(dual)
   }, [dual])
 
-  const update = useCallback((fn: (prev: DualProgressState) => DualProgressState) => {
-    setDual((prev) => fn(prev))
+  const setActivePath = useCallback((path: LearningPathId) => {
+    setDual((d) => ({ ...d, activePath: path, pathChosen: true }))
   }, [])
 
-  const value = useMemo<ProgressContextValue>(() => {
-    const progress = dual[dual.activePath]
-    return {
+  const choosePath = useCallback((path: LearningPathId) => {
+    setDual((d) => ({ ...d, activePath: path, pathChosen: true }))
+  }, [])
+
+  const setLastRoute = useCallback((route: string) => {
+    setDual((d) => {
+      if (d[d.activePath].lastRoute === route) return d
+      return updateActive(d, (p) => ({ ...p, lastRoute: route }))
+    })
+  }, [])
+
+  const toggleItemComplete = useCallback((itemId: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => {
+        const has = p.completedItems.includes(itemId)
+        return {
+          ...p,
+          completedItems: has
+            ? p.completedItems.filter((id) => id !== itemId)
+            : [...p.completedItems, itemId],
+        }
+      }),
+    )
+  }, [])
+
+  const toggleTracker = useCallback((id: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => {
+        const has = p.completedTracker.includes(id)
+        return {
+          ...p,
+          completedTracker: has
+            ? p.completedTracker.filter((x) => x !== id)
+            : [...p.completedTracker, id],
+        }
+      }),
+    )
+  }, [])
+
+  const setDrillRating = useCallback((drillId: string, rating: DrillRating) => {
+    setDual((d) =>
+      updateActive(d, (p) => ({
+        ...p,
+        drillRatings: { ...p.drillRatings, [drillId]: rating },
+      })),
+    )
+  }, [])
+
+  const toggleLabCheck = useCallback((labId: string, item: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => {
+        const current = p.labChecks[labId] ?? []
+        const has = current.includes(item)
+        return {
+          ...p,
+          labChecks: {
+            ...p.labChecks,
+            [labId]: has ? current.filter((x) => x !== item) : [...current, item],
+          },
+        }
+      }),
+    )
+  }, [])
+
+  const setLabNotes = useCallback((labId: string, notes: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => ({
+        ...p,
+        labNotes: { ...p.labNotes, [labId]: notes },
+      })),
+    )
+  }, [])
+
+  const markVersioningCorrect = useCallback((itemId: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => ({
+        ...p,
+        versioningCorrect: p.versioningCorrect.includes(itemId)
+          ? p.versioningCorrect
+          : [...p.versioningCorrect, itemId],
+      })),
+    )
+  }, [])
+
+  const markFilterCorrect = useCallback((itemId: string) => {
+    setDual((d) =>
+      updateActive(d, (p) => ({
+        ...p,
+        filterCorrect: p.filterCorrect.includes(itemId)
+          ? p.filterCorrect
+          : [...p.filterCorrect, itemId],
+      })),
+    )
+  }, [])
+
+  const resetActivePath = useCallback(() => {
+    setDual((d) => resetActivePathProgress(d))
+  }, [])
+
+  const resetAll = useCallback(() => {
+    setDual(resetDualProgress())
+  }, [])
+
+  const value = useMemo<ProgressContextValue>(
+    () => ({
       dual,
       activePath: dual.activePath,
       pathChosen: dual.pathChosen,
-      progress,
-      setActivePath: (path) =>
-        update((d) => ({ ...d, activePath: path, pathChosen: true })),
-      choosePath: (path) =>
-        update((d) => ({ ...d, activePath: path, pathChosen: true })),
-      setLastRoute: (route) =>
-        update((d) => updateActive(d, (p) => ({ ...p, lastRoute: route }))),
-      toggleItemComplete: (itemId) =>
-        update((d) =>
-          updateActive(d, (p) => {
-            const has = p.completedItems.includes(itemId)
-            return {
-              ...p,
-              completedItems: has
-                ? p.completedItems.filter((id) => id !== itemId)
-                : [...p.completedItems, itemId],
-            }
-          }),
-        ),
-      toggleTracker: (id) =>
-        update((d) =>
-          updateActive(d, (p) => {
-            const has = p.completedTracker.includes(id)
-            return {
-              ...p,
-              completedTracker: has
-                ? p.completedTracker.filter((x) => x !== id)
-                : [...p.completedTracker, id],
-            }
-          }),
-        ),
-      setDrillRating: (drillId, rating) =>
-        update((d) =>
-          updateActive(d, (p) => ({
-            ...p,
-            drillRatings: { ...p.drillRatings, [drillId]: rating },
-          })),
-        ),
-      toggleLabCheck: (labId, item) =>
-        update((d) =>
-          updateActive(d, (p) => {
-            const current = p.labChecks[labId] ?? []
-            const has = current.includes(item)
-            return {
-              ...p,
-              labChecks: {
-                ...p.labChecks,
-                [labId]: has ? current.filter((x) => x !== item) : [...current, item],
-              },
-            }
-          }),
-        ),
-      setLabNotes: (labId, notes) =>
-        update((d) =>
-          updateActive(d, (p) => ({
-            ...p,
-            labNotes: { ...p.labNotes, [labId]: notes },
-          })),
-        ),
-      markVersioningCorrect: (itemId) =>
-        update((d) =>
-          updateActive(d, (p) => ({
-            ...p,
-            versioningCorrect: p.versioningCorrect.includes(itemId)
-              ? p.versioningCorrect
-              : [...p.versioningCorrect, itemId],
-          })),
-        ),
-      markFilterCorrect: (itemId) =>
-        update((d) =>
-          updateActive(d, (p) => ({
-            ...p,
-            filterCorrect: p.filterCorrect.includes(itemId)
-              ? p.filterCorrect
-              : [...p.filterCorrect, itemId],
-          })),
-        ),
-      resetActivePath: () => setDual((d) => resetActivePathProgress(d)),
-      resetAll: () => setDual(resetDualProgress()),
-    }
-  }, [dual, update])
+      progress: dual[dual.activePath],
+      setActivePath,
+      choosePath,
+      setLastRoute,
+      toggleItemComplete,
+      toggleTracker,
+      setDrillRating,
+      toggleLabCheck,
+      setLabNotes,
+      markVersioningCorrect,
+      markFilterCorrect,
+      resetActivePath,
+      resetAll,
+    }),
+    [
+      dual,
+      setActivePath,
+      choosePath,
+      setLastRoute,
+      toggleItemComplete,
+      toggleTracker,
+      setDrillRating,
+      toggleLabCheck,
+      setLabNotes,
+      markVersioningCorrect,
+      markFilterCorrect,
+      resetActivePath,
+      resetAll,
+    ],
+  )
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>
 }

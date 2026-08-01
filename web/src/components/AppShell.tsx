@@ -19,7 +19,7 @@ export function AppShell() {
   useEffect(() => {
     setMenuOpen(false)
     setLastRoute(location.pathname + location.search)
-  }, [location, setLastRoute])
+  }, [location.pathname, location.search, setLastRoute])
 
   const switchPath = (path: LearningPathId) => {
     setActivePath(path)
