@@ -35,7 +35,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_BASE: /2026DeveloperDays/
+          VITE_BASE: /SailPointISC/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

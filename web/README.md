@@ -25,9 +25,9 @@ One-time repo setup:
 
 1. **Settings → Pages → Build and deployment → Source:** GitHub Actions
 2. Push to `main` (or run the workflow manually)
-3. App URL: `https://<user>.github.io/2026DeveloperDays/`
+3. App URL: `https://<user>.github.io/SailPointISC/`
 
-Production builds use `VITE_BASE=/2026DeveloperDays/` so assets resolve under the project path. HashRouter is used so deep links work without server rewrites (`.../#/phase/phase-2`).
+Production builds use `VITE_BASE=/SailPointISC/` so assets resolve under the project path. HashRouter is used so deep links work without server rewrites (`.../#/phase/phase-2`).
 
 ## Embed later / Capacitor later
 

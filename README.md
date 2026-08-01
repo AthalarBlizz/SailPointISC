@@ -53,7 +53,7 @@ npm run dev
 
 - Editorial markdown: [`docs/curriculum.md`](docs/curriculum.md)
 - App docs: [`web/README.md`](web/README.md)
-- **GitHub Pages:** enable Settings → Pages → Source: GitHub Actions, then push `web/` to `main`. Site: `https://<user>.github.io/2026DeveloperDays/`
+- **GitHub Pages:** enable Settings → Pages → Source: GitHub Actions, then push `web/` to `main`. Site: `https://<user>.github.io/SailPointISC/`
 
 ---
 
