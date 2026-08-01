@@ -1,4 +1,5 @@
 import { trackerItems } from '../content'
+import { DataTransferPanel } from '../components/DataTransferPanel'
 import { useProgress } from '../hooks/useProgress'
 
 export function TrackerPage() {
@@ -14,8 +15,8 @@ export function TrackerPage() {
         </span>
         <h1>Progress tracker</h1>
         <p className="muted">
-          Saved on this device for the active path only. Switch paths anytime — the other path’s
-          checkmarks stay.
+          Saved in this browser for the active path. Export a backup to move progress to another
+          device — the other path’s checkmarks stay when you switch.
         </p>
         <div className="actions" style={{ marginTop: '0.75rem' }}>
           <button
@@ -45,6 +46,8 @@ export function TrackerPage() {
           )
         })}
       </div>
+
+      <DataTransferPanel />
     </div>
   )
 }

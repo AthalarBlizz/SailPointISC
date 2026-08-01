@@ -182,3 +182,112 @@ export function resetActivePathProgress(
   saveDualProgress(next, adapter)
   return next
 }
+
+/** Portable backup envelope — safe to save to Files / iCloud / Drive. */
+export const PROGRESS_EXPORT_FORMAT = 'isc-curriculum-progress'
+export const PROGRESS_EXPORT_VERSION = 1
+
+export type ProgressExportEnvelope = {
+  format: typeof PROGRESS_EXPORT_FORMAT
+  formatVersion: number
+  exportedAt: string
+  app: string
+  data: DualProgressState
+}
+
+export function buildProgressExport(state: DualProgressState): ProgressExportEnvelope {
+  return {
+    format: PROGRESS_EXPORT_FORMAT,
+    formatVersion: PROGRESS_EXPORT_VERSION,
+    exportedAt: new Date().toISOString(),
+    app: 'SailPoint ISC Developer Curriculum',
+    data: normalizeDual(state),
+  }
+}
+
+export function progressExportFilename(exportedAt = new Date()): string {
+  const stamp = exportedAt.toISOString().slice(0, 10)
+  return `isc-curriculum-progress-${stamp}.json`
+}
+
+/**
+ * Parse and validate a progress backup (envelope or raw DualProgressState).
+ * Returns normalized state or a human-readable error string.
+ */
+export function parseProgressImport(raw: string): DualProgressState | string {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return 'That file is not valid JSON.'
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return 'That file does not look like a progress backup.'
+  }
+
+  const obj = parsed as Record<string, unknown>
+
+  // Envelope from this app
+  if (obj.format === PROGRESS_EXPORT_FORMAT && obj.data && typeof obj.data === 'object') {
+    return normalizeDual(obj.data as DualProgressState)
+  }
+
+  // Raw dual progress (or older backups without envelope)
+  if (
+    obj.fluency &&
+    typeof obj.fluency === 'object' &&
+    obj.implementation &&
+    typeof obj.implementation === 'object'
+  ) {
+    return normalizeDual(obj as unknown as DualProgressState)
+  }
+
+  // Legacy single-path v1 shape
+  if (Array.isArray(obj.completedPhases) || Array.isArray(obj.completedTracker)) {
+    const migrated = migrateV1(JSON.stringify(obj))
+    if (migrated) return migrated
+  }
+
+  return 'Unrecognized progress file. Export a backup from this curriculum app and try again.'
+}
+
+/**
+ * Save a progress backup: Web Share (Files/iCloud) when available, else download.
+ */
+export async function shareOrDownloadProgress(
+  state: DualProgressState,
+): Promise<'shared' | 'downloaded'> {
+  const envelope = buildProgressExport(state)
+  const filename = progressExportFilename(new Date(envelope.exportedAt))
+  const text = JSON.stringify(envelope, null, 2)
+  const file = new File([text], filename, { type: 'application/json' })
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'ISC curriculum progress',
+        text: 'SailPoint ISC Developer Curriculum progress backup',
+      })
+      return 'shared'
+    }
+  } catch (err) {
+    // User cancelled share sheet — don't fall through to a duplicate download.
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw err
+    }
+  }
+
+  const blob = new Blob([text], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.rel = 'noopener'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+  return 'downloaded'
+}

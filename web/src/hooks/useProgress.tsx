@@ -12,6 +12,8 @@ import {
   saveDualProgress,
   resetDualProgress,
   resetActivePathProgress,
+  parseProgressImport,
+  shareOrDownloadProgress,
   type DualProgressState,
   type PathProgress,
   type LearningPathId,
@@ -37,6 +39,8 @@ type ProgressContextValue = {
   markFilterCorrect: (itemId: string) => void
   resetActivePath: () => void
   resetAll: () => void
+  exportProgress: () => Promise<'shared' | 'downloaded'>
+  importProgress: (raw: string) => string | null
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null)
@@ -187,6 +191,31 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setDual(resetDualProgress())
   }, [])
 
+  const exportProgress = useCallback(async () => {
+    // Prefer the latest persisted blob so lastRoute from rememberRoute is included.
+    const latest = loadDualProgress()
+    const merged: DualProgressState = {
+      ...dual,
+      fluency: {
+        ...dual.fluency,
+        lastRoute: latest.fluency?.lastRoute || dual.fluency.lastRoute,
+      },
+      implementation: {
+        ...dual.implementation,
+        lastRoute: latest.implementation?.lastRoute || dual.implementation.lastRoute,
+      },
+    }
+    return shareOrDownloadProgress(merged)
+  }, [dual])
+
+  const importProgress = useCallback((raw: string) => {
+    const result = parseProgressImport(raw)
+    if (typeof result === 'string') return result
+    saveDualProgress(result)
+    setDual(result)
+    return null
+  }, [])
+
   const value = useMemo<ProgressContextValue>(
     () => ({
       dual,
@@ -206,6 +235,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markFilterCorrect,
       resetActivePath,
       resetAll,
+      exportProgress,
+      importProgress,
     }),
     [
       dual,
@@ -222,6 +253,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markFilterCorrect,
       resetActivePath,
       resetAll,
+      exportProgress,
+      importProgress,
     ],
   )
 

@@ -7,6 +7,7 @@ import {
   implementationModules,
   trackerItems,
 } from '../content'
+import { DataTransferPanel } from '../components/DataTransferPanel'
 import { useProgress } from '../hooks/useProgress'
 
 export function HomePage() {
@@ -83,6 +84,7 @@ export function HomePage() {
             Clear saved data and reload
           </button>
         </p>
+        <DataTransferPanel compact />
       </div>
     )
   }
@@ -306,6 +308,7 @@ function HomeShell({
           </div>
         </div>
       </section>
+      <DataTransferPanel />
       {children}
     </div>
   )
