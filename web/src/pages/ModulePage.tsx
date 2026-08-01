@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   getModule,
   implementationModules,
@@ -8,17 +8,21 @@ import {
   getPhase,
 } from '../content'
 import { ContentBlocks } from '../components/ContentBlocks'
+import { ListenBar } from '../components/ListenBar'
 import { useProgress } from '../hooks/useProgress'
 import {
   isModuleUnlocked,
   canClearUnit,
   quizIdsInSections,
 } from '../lib/gamification'
+import { buildListenScript, moduleToListenUnit } from '../lib/narration'
 
 export function ModulePage() {
   const { moduleId } = useParams()
   const mod = getModule(moduleId ?? '')
   const { progress, toggleItemComplete, setActivePath, tryClearUnit } = useProgress()
+  const [listening, setListening] = useState(false)
+  const [activeSectionId, setActiveSectionId] = useState<string | undefined>()
 
   useEffect(() => {
     if (!mod) return
@@ -26,6 +30,31 @@ export function ModulePage() {
       tryClearUnit(mod.id, mod.sections, mod.checkpoints)
     }
   }, [mod, progress, tryClearUnit])
+
+  useEffect(() => {
+    setListening(false)
+    setActiveSectionId(undefined)
+    window.speechSynthesis?.cancel()
+  }, [moduleId])
+
+  const utterances = useMemo(
+    () => (mod ? buildListenScript(moduleToListenUnit(mod)) : []),
+    [mod],
+  )
+  const sectionTitles = useMemo(() => {
+    const m: Record<string, string> = {}
+    mod?.sections.forEach((s) => {
+      m[s.id] = s.title
+    })
+    return m
+  }, [mod])
+
+  const onSectionChange = useCallback((id: string | undefined) => {
+    setActiveSectionId(id)
+    if (!id) return
+    const el = document.getElementById(`section-${id}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   if (!mod) {
     return (
@@ -84,7 +113,7 @@ export function ModulePage() {
   }
 
   return (
-    <div>
+    <div className={listening ? 'listening-active' : undefined}>
       <header className="page-header">
         <span className="eyebrow">
           {track?.shortTitle ?? 'Path B'} · M{mod.number} · {mod.estTime}
@@ -105,7 +134,14 @@ export function ModulePage() {
         <div className="actions" style={{ marginTop: '1rem' }}>
           <button
             type="button"
-            className={done ? 'btn btn-success' : 'btn btn-primary'}
+            className={listening ? 'btn btn-success' : 'btn btn-primary'}
+            onClick={() => setListening(true)}
+          >
+            {listening ? 'Listening…' : 'Listen'}
+          </button>
+          <button
+            type="button"
+            className={done ? 'btn btn-success' : 'btn btn-ghost'}
             onClick={() => toggleItemComplete(mod.id)}
           >
             {done ? 'Marked complete' : 'Mark module complete'}
@@ -147,7 +183,11 @@ export function ModulePage() {
       </section>
 
       {mod.sections.map((section) => (
-        <section key={section.id} className="section">
+        <section
+          key={section.id}
+          id={`section-${section.id}`}
+          className={`section${activeSectionId === section.id ? ' section-speaking' : ''}`}
+        >
           <h2>{section.title}</h2>
           <ContentBlocks blocks={section.blocks} />
         </section>
@@ -244,6 +284,19 @@ export function ModulePage() {
           </Link>
         )}
       </div>
+
+      {listening ? (
+        <ListenBar
+          utterances={utterances}
+          sectionTitles={sectionTitles}
+          onSectionChange={onSectionChange}
+          onClose={() => {
+            window.speechSynthesis?.cancel()
+            setListening(false)
+            setActiveSectionId(undefined)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

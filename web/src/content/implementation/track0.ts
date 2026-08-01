@@ -4,6 +4,7 @@ import {
   DIAGRAM_AUTH_FLOW,
   DIAGRAM_VERSIONING,
 } from '../diagrams'
+import { moduleListenScripts } from '../listenScripts'
 
 export const modules: Module[] = [
   {
@@ -15,6 +16,7 @@ export const modules: Module[] = [
     goal: 'Design integrations against the correct ISC objects and ownership boundaries',
     trackId: 'track-0',
     fluencyPhaseId: 'phase-0',
+    listenScript: moduleListenScripts.m0,
     outcomes: [
       'Draw the identity → account → entitlement → access profile → role chain from memory.',
       'Explain where lifecycle state sits relative to provisioning and sources.',
@@ -143,6 +145,7 @@ export const modules: Module[] = [
     goal: 'Ship PAT-based integrations that fail closed and are diagnosable',
     trackId: 'track-0',
     fluencyPhaseId: 'phase-1',
+    listenScript: moduleListenScripts.m1,
     labs: ['lab-impl-rest-client'],
     outcomes: [
       'Implement client-credentials token acquisition and reuse (~12 min TTL).',
@@ -272,6 +275,7 @@ configuration = Configuration()  # SDK refreshes tokens`,
     goal: 'Advise greenfield pins and brownfield migration with July 2026 facts',
     trackId: 'track-0',
     fluencyPhaseId: 'phase-2',
+    listenScript: moduleListenScripts.m2,
     labs: ['lab-versioning', 'lab-capstone-d'],
     outcomes: [
       'Map /v2026/{resource} → /{resource}/vN using the official migration table.',

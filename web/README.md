@@ -21,6 +21,16 @@ Choose on first visit; switch anytime from the top bar. Progress is stored separ
 
 Export/import progress JSON from Home to back up across devices.
 
+## Listen mode
+
+On any unlocked phase or module, tap **Listen**. The app narrates a coach-style spoken lesson (not a screen dump): authored scripts for Phase 0–2 / M0–M2; other units use a rewrite engine that summarizes tables, skips code/URLs, and pauses for micro-checks.
+
+- Play / Pause / Next / Prev, rate, and voice picker
+- Keep the curriculum tab open — some browsers pause speech when the tab is fully backgrounded
+- Space toggles play/pause
+
+Requires browser Web Speech API (Chrome, Edge, Safari).
+
 ## Local
 
 ```bash
@@ -42,5 +52,6 @@ Production builds use `VITE_BASE=/SailPointISC/`. HashRouter for deep links (`..
 - Path A: `src/content/phases.ts`
 - Path B: `src/content/implementation/`
 - Diagrams: `src/content/diagrams.ts`
+- Listen scripts: `src/content/listenScripts.ts`
 - Badges: `src/content/badges.ts`
 - Shared: snapshot, glossary, labs

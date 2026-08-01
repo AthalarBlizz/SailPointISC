@@ -21,6 +21,8 @@ export type Section = {
   id: string
   title: string
   blocks: ContentBlock[]
+  /** Hand-written spoken paragraphs for Listen mode (overrides auto-rewrite for this section). */
+  listenScript?: string[]
 }
 
 export type Drill = {
@@ -42,6 +44,8 @@ export type Phase = {
   labs?: string[]
   /** Path B modules to deepen this phase */
   deepenModules?: string[]
+  /** Hand-written full-lesson spoken paragraphs for Listen mode. */
+  listenScript?: string[]
 }
 
 export type Module = {
@@ -62,6 +66,8 @@ export type Module = {
   labs?: string[]
   /** Path A phase for fluency refresh */
   fluencyPhaseId?: string
+  /** Hand-written full-lesson spoken paragraphs for Listen mode. */
+  listenScript?: string[]
 }
 
 export type Track = {

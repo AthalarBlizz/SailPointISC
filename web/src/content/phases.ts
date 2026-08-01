@@ -6,6 +6,7 @@ import {
   DIAGRAM_LEAVER,
   DIAGRAM_EXTENSIBILITY,
 } from './diagrams'
+import { phaseListenScripts } from './listenScripts'
 
 export const phases: Phase[] = [
   {
@@ -16,6 +17,7 @@ export const phases: Phase[] = [
     shortTitle: 'Mental model',
     estTime: '0.5 day',
     goal: 'Speak the product nouns',
+    listenScript: phaseListenScripts['phase-0'],
     outcomes: [
       'Explain what ISC is for in one sentence.',
       'Name the core objects and how they relate.',
@@ -135,6 +137,7 @@ export const phases: Phase[] = [
     shortTitle: 'Auth & HTTP',
     estTime: '1–2 days',
     goal: 'Explain a failing call',
+    listenScript: phaseListenScripts['phase-1'],
     outcomes: [
       'Describe PAT + client-credentials flow end to end.',
       'Separate user level vs scopes.',
@@ -255,6 +258,7 @@ export const phases: Phase[] = [
     shortTitle: 'Versioning',
     estTime: '1–2 days',
     goal: 'Advise migrate vs maintain',
+    listenScript: phaseListenScripts['phase-2'],
     outcomes: [
       'Contrast yearly vs per-service models as of July 2026.',
       'Map a legacy path to a new path using the migration table.',

@@ -1,18 +1,22 @@
 import { Link, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getPhase, phases, getLab, getModule } from '../content'
 import { ContentBlocks } from '../components/ContentBlocks'
+import { ListenBar } from '../components/ListenBar'
 import { useProgress } from '../hooks/useProgress'
 import {
   isPhaseUnlocked,
   canClearUnit,
   quizIdsInSections,
 } from '../lib/gamification'
+import { buildListenScript, phaseToListenUnit } from '../lib/narration'
 
 export function PhasePage() {
   const { phaseId } = useParams()
   const phase = getPhase(phaseId ?? '')
   const { progress, toggleItemComplete, setActivePath, tryClearUnit } = useProgress()
+  const [listening, setListening] = useState(false)
+  const [activeSectionId, setActiveSectionId] = useState<string | undefined>()
 
   useEffect(() => {
     if (!phase) return
@@ -20,6 +24,31 @@ export function PhasePage() {
       tryClearUnit(phase.id, phase.sections, phase.checkpoints)
     }
   }, [phase, progress, tryClearUnit])
+
+  useEffect(() => {
+    setListening(false)
+    setActiveSectionId(undefined)
+    window.speechSynthesis?.cancel()
+  }, [phaseId])
+
+  const utterances = useMemo(
+    () => (phase ? buildListenScript(phaseToListenUnit(phase)) : []),
+    [phase],
+  )
+  const sectionTitles = useMemo(() => {
+    const m: Record<string, string> = {}
+    phase?.sections.forEach((s) => {
+      m[s.id] = s.title
+    })
+    return m
+  }, [phase])
+
+  const onSectionChange = useCallback((id: string | undefined) => {
+    setActiveSectionId(id)
+    if (!id) return
+    const el = document.getElementById(`section-${id}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   if (!phase) {
     return (
@@ -73,7 +102,7 @@ export function PhasePage() {
   }
 
   return (
-    <div>
+    <div className={listening ? 'listening-active' : undefined}>
       <header className="page-header">
         <span className="eyebrow">
           Phase {phase.number} · {phase.estTime}
@@ -94,7 +123,14 @@ export function PhasePage() {
         <div className="actions" style={{ marginTop: '1rem' }}>
           <button
             type="button"
-            className={done ? 'btn btn-success' : 'btn btn-primary'}
+            className={listening ? 'btn btn-success' : 'btn btn-primary'}
+            onClick={() => setListening(true)}
+          >
+            {listening ? 'Listening…' : 'Listen'}
+          </button>
+          <button
+            type="button"
+            className={done ? 'btn btn-success' : 'btn btn-ghost'}
             onClick={() => toggleItemComplete(phase.id)}
           >
             {done ? 'Marked complete' : 'Mark phase complete'}
@@ -121,7 +157,11 @@ export function PhasePage() {
       </section>
 
       {phase.sections.map((section) => (
-        <section key={section.id} className="section">
+        <section
+          key={section.id}
+          id={`section-${section.id}`}
+          className={`section${activeSectionId === section.id ? ' section-speaking' : ''}`}
+        >
           <h2>{section.title}</h2>
           <ContentBlocks blocks={section.blocks} />
         </section>
@@ -214,6 +254,19 @@ export function PhasePage() {
           </Link>
         )}
       </div>
+
+      {listening ? (
+        <ListenBar
+          utterances={utterances}
+          sectionTitles={sectionTitles}
+          onSectionChange={onSectionChange}
+          onClose={() => {
+            window.speechSynthesis?.cancel()
+            setListening(false)
+            setActiveSectionId(undefined)
+          }}
+        />
+      ) : null}
     </div>
   )
 }
