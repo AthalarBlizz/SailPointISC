@@ -11,7 +11,7 @@ The gamified web app awards XP, unlocks modules as you progress, renders Mermaid
 
 **How to use this with your local sandbox:** Activate `.venv`, keep `api-specs/` current, and use Cursor Agent mode against `CLAUDE.md` + specs. Live tenant exercises are marked **[TENANT]** and are optional until you have access.
 
-**Interactive web app:** Practice on phone or desktop via the app in [`web/`](../web/) (`npm run dev`, or GitHub Pages). Pick Fluency or Implementation on first launch.
+**Interactive web app:** Practice on phone or desktop via the app in [`web/`](../web/) (`npm run dev`, or GitHub Pages). Pick Fluency or Implementation on first launch. Spoken **Listen** scripts for every phase live in [`docs/listen-scripts/`](listen-scripts/) (edit Markdown there; the app loads them automatically).
 
 
 ---

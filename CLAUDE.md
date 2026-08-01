@@ -19,6 +19,7 @@ These are scripts and automations — not web applications.
 - `docs/curriculum.md` — Path A conversational fluency curriculum
 - `docs/curriculum/` — Path B senior implementation modules (M0–M20)
 - `web/` — dual-path interactive learning app (Fluency | Implementation)
+- `docs/listen-scripts/` — spoken Listen-mode scripts (Markdown; app loads these at build time)
 
 ---
 

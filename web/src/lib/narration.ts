@@ -1,4 +1,5 @@
 import type { ContentBlock, Module, Phase, Section } from '../content/types'
+import { getListenScript } from '../content/listenScripts'
 
 export type UtteranceKind = 'intro' | 'body' | 'bridge' | 'aside' | 'outro' | 'quiz-pause'
 
@@ -297,6 +298,8 @@ function outroSpeech(unit: ListenUnit): string {
 }
 
 export function phaseToListenUnit(phase: Phase): ListenUnit {
+  // Prefer inline override; otherwise docs/listen-scripts/path-a/{id}.md
+  const fromDocs = getListenScript(phase.id)
   return {
     id: phase.id,
     title: phase.title,
@@ -305,11 +308,12 @@ export function phaseToListenUnit(phase: Phase): ListenUnit {
     outcomes: phase.outcomes,
     sections: phase.sections,
     checkpoints: phase.checkpoints,
-    listenScript: phase.listenScript,
+    listenScript: phase.listenScript?.length ? phase.listenScript : fromDocs,
   }
 }
 
 export function moduleToListenUnit(mod: Module): ListenUnit {
+  const fromDocs = getListenScript(mod.id)
   return {
     id: mod.id,
     title: mod.title,
@@ -318,7 +322,7 @@ export function moduleToListenUnit(mod: Module): ListenUnit {
     outcomes: mod.outcomes,
     sections: mod.sections,
     checkpoints: mod.checkpoints,
-    listenScript: mod.listenScript,
+    listenScript: mod.listenScript?.length ? mod.listenScript : fromDocs,
     whenToUse: mod.whenToUse,
     whenNot: mod.whenNot,
     failureModes: mod.failureModes,

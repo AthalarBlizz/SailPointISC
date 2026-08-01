@@ -52,6 +52,6 @@ Production builds use `VITE_BASE=/SailPointISC/`. HashRouter for deep links (`..
 - Path A: `src/content/phases.ts`
 - Path B: `src/content/implementation/`
 - Diagrams: `src/content/diagrams.ts`
-- Listen scripts: `src/content/listenScripts/` (thorough authored lessons for every phase and module)
+- Listen scripts (source of truth): `../docs/listen-scripts/` — Markdown per phase/module; loaded at build time
 - Badges: `src/content/badges.ts`
 - Shared: snapshot, glossary, labs

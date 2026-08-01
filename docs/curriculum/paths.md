@@ -16,5 +16,6 @@ The [web app](../../web/) is the interactive runtime:
 - Mermaid diagrams and section micro-checks
 - XP, ranks, streaks, badges, and sequential unlocks
 - Spaced revisit on drills; scored decision labs
+- **Listen mode** scripts: [`docs/listen-scripts/`](../listen-scripts/) (Markdown source of truth)
 
 Markdown in this folder is the readable companion (GitHub-rendered Mermaid). Runtime source of truth for Path B modules remains `web/src/content/implementation/`.

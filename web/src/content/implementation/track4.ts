@@ -1,6 +1,5 @@
 import type { Module } from '../types'
 import { DIAGRAM_REF_ARCH } from '../diagrams'
-import { moduleListenScripts } from '../listenScripts'
 
 export const modules: Module[] = [
   {
@@ -12,7 +11,6 @@ export const modules: Module[] = [
     goal: 'Pick durable patterns: sync vs async, ownership, and anti-corruption boundaries',
     trackId: 'track-4',
     fluencyPhaseId: 'phase-7',
-    listenScript: moduleListenScripts.m17,
     labs: ['lab-capstone-h', 'lab-decision-extension'],
     outcomes: [
       'Draw reference architectures for ITDR, JML bridge, and peer provisioner.',
@@ -131,7 +129,6 @@ export const modules: Module[] = [
     goal: 'Operate integrations like production software, not desk scripts',
     trackId: 'track-4',
     fluencyPhaseId: 'phase-7',
-    listenScript: moduleListenScripts.m18,
     labs: ['lab-capstone-h'],
     outcomes: [
       'Implement token reuse, 429 backoff, and pagination budgets.',
@@ -230,7 +227,6 @@ export const modules: Module[] = [
     goal: 'Run an org-wide migration with inventory, scripts, and executive dates',
     trackId: 'track-4',
     fluencyPhaseId: 'phase-2',
-    listenScript: moduleListenScripts.m19,
     labs: ['lab-capstone-d', 'lab-capstone-h'],
     outcomes: [
       'Build an inventory across scripts, SDKs, workflows, and ITSM.',
@@ -325,7 +321,6 @@ export const modules: Module[] = [
     goal: 'Prove senior delivery via labs A–H spanning REST, SDK, extensibility, and ADR',
     trackId: 'track-4',
     fluencyPhaseId: 'phase-8',
-    listenScript: moduleListenScripts.m20,
     labs: [
       'lab-capstone-a',
       'lab-capstone-b',
