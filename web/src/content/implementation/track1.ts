@@ -476,7 +476,7 @@ await accessRequestsApi.createAccessRequestV1({
         id: 'm7-d2',
         prompt: 'Name one migration foot-gun specific to access APIs.',
         answer:
-          'Some access-request-config / entitlements paths map to v2, not v1 — verify in the official migration table.',
+          'access-request-config has v1 and v2; entitlements prefer /entitlements/v1 in local OpenAPI, but the migration table may list v2 for some v2026 cases — verify both.',
       },
     ],
   },

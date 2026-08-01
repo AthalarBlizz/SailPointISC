@@ -18,7 +18,7 @@ Slash latest was introduced early twenty twenty-six as a yearly-alias shortcut. 
 
 Legacy yearly, v three, and beta still have support tickets through Q two twenty twenty-eight, and hard end of life in Q one twenty twenty-nine. Migration is urgent strategically but not overnight — the deadline is Q one twenty twenty-nine. Brownfield inventories and migrates; greenfield does not start on yearly paths.
 
-In the TypeScript software development kit two point x, you import resource A P Is without year namespaces, and method names carry the version suffix — list accounts v one, and so on. Old S D Ks used year namespaces on the class. Use the official migration scripts; don’t hand-rewrite everything. Review v two outliers by hand — some access-request-config and entitlements cases already map to v two.
+In the TypeScript S D K two point x, you import resource A P Is without year namespaces, and method names carry the version suffix — list accounts v one, and so on. Old S D Ks used year namespaces on the class. Use the official migration scripts; don’t hand-rewrite everything. Review v two outliers by hand — access-request-config has v one and v two. Prefer slash entitlements slash v one from the current Open A P I; if the migration table lists v two for some v two zero two six entitlements cases, verify both the table and the spec.
 
 Experimental endpoints still need the header X hyphen SailPoint hyphen Experimental set to true. They may break with little notice. Public A P Is avoid breaking changes within a major version.
 

@@ -122,32 +122,41 @@ user level permits.
 
 ## API Versioning
 
-### Version selection
+### Dual-world model (July 2026)
 
-SailPoint releases a new API version each year named by year (v2024, v2025, v2026...).
-Each version is supported for 3 years from its release year.
-After support ends, versions remain operational for an additional 2-year transition period.
+As of July 2026, ISC uses **per-service semantic versioning**. Each service is versioned
+independently; major versions bump only on breaking contract changes. Paths look like
+`/identities/v1`, `/accounts/v1`, `/access-requests/v1`.
+
+**Legacy** yearly collections (`v2024` / `v2025` / `v2026`), `v3`, `beta`, and the `/latest`
+alias still work. Support tickets for those collections continue through **Q2 2028**; endpoints
+stop functioning **Q1 2029**. Greenfield work pins explicit `/service/vN`. Workshop samples in
+this repo may still demonstrate yearly paths — treat them as teaching patterns, not a greenfield
+target.
 
 **To find which version to use:**
-1. Check what version folders exist in `api-specs/idn/` — use the highest available
-2. Search for the endpoint in that version first
-3. If not found, fall back to the next lower version
-4. Avoid v3 — supported only until Q1 2027, no new functionality
+1. Prefer the current per-service collection: `api-specs/idn/sailpoint-api.yaml`
+2. Confirm method, path, scopes, and any experimental header from that operation
+3. Use legacy yearly folders (`api-specs/idn/v2025/`, `v2026/`, …) only when reading or migrating
+   brownfield / workshop code that still calls yearly paths
+4. Never invent endpoints from training data; verify in OpenAPI **and** the
+   [migration path table](https://developer.sailpoint.com/docs/api/api-versioning-migration/)
+5. Do not assume every resource is `v1` — e.g. `access-request-config` has both `v1` and `v2`.
+   Local OpenAPI currently lists `/entitlements/v1`; if the migration table differs, verify both
 
-Only the current year's version receives new functionality. Earlier versions get
-non-deprecated endpoints carried forward but nothing new.
+Authoritative docs: [API Versioning Strategy](https://developer.sailpoint.com/docs/api/api-versioning-strategy)
+and [API Versioning Migration](https://developer.sailpoint.com/docs/api/api-versioning-migration/).
 
 ### Experimental APIs
 
-Some endpoints within a versioned API are marked **Experimental** and require an opt-in header:
+Some endpoints are marked **Experimental** and require an opt-in header:
 
 ```
 X-SailPoint-Experimental: true
 ```
 
-**Python SDK:** The SDK handles this automatically. Experimental methods include
-`x_sail_point_experimental` as a parameter with a default of `'true'` — just call the
-method normally and the header is sent.
+**Python SDK:** The SDK often handles this automatically. Experimental methods may include
+`x_sail_point_experimental` as a parameter — still know when the header applies.
 
 **Raw REST calls:** You must add the header manually:
 ```
@@ -157,55 +166,35 @@ X-SailPoint-Experimental: true
 Without this header on a raw call, experimental endpoints return an error. Experimental
 APIs may have breaking changes with little notice — treat them as unstable in production.
 
-### URL patterns by version
+### URL patterns
 
 ```
+# CURRENT (prefer for new work)
+https://{tenant}.api.identitynow.com/accounts/v1
+https://{tenant}.api.identitynow.com/identities/v1
+https://{tenant}.api.identitynow.com/access-requests/v1
+
+# LEGACY yearly (workshop samples; migrate before Q1 2029)
 https://{tenant}.api.identitynow.com/v2026/{endpoint}
 https://{tenant}.api.identitynow.com/v2025/{endpoint}
-https://{tenant}.api.identitynow.com/v3/{endpoint}       ← avoid for new work
-https://{tenant}.api.identitynow.com/latest/{endpoint}   ← see /latest below
+
+# LEGACY aliases / collections
+https://{tenant}.api.identitynow.com/v3/...
+https://{tenant}.api.identitynow.com/beta/...
+https://{tenant}.api.identitynow.com/latest/...   ← unsafe for production
 ```
 
 ### The `/latest` version alias
 
-Announced February 2026. `/latest` routes to the current annual version without requiring you to
-specify a year — when SailPoint releases v2027, `/latest` will automatically resolve there.
+Introduced early 2026 as a yearly-alias shortcut. Under the July 2026 strategy, treat `/latest`
+as **unsafe for production** — it auto-routes and can break silently when routing flips.
 
-```
-https://{tenant}.api.identitynow.com/latest/accounts
-https://{tenant}.api.identitynow.com/latest/identities
-```
+Prefer explicit `/service/vN` pins for scripts, ongoing integrations, workflow HTTP actions, and
+ITSM call sheets. Do not use `/latest` as a production versioning strategy.
 
-To see which version a `/latest` call actually resolved to, check the response header:
-
-```
-X-SailPoint-Route-Version: v2026
-```
-
-**Experimental endpoints and `/latest`:** Experimental endpoints are excluded from automatic
-routing. If an endpoint only exists in experimental form, `/latest` routes to the latest
-experimental version of it — but you still must send the `X-SailPoint-Experimental: true` header.
-
-**When to use `/latest`:**
-
-*One-time or bulk scripts* — use `/latest` unconditionally. The script runs and is done; version
-drift is irrelevant.
-
-*Ongoing integrations* — `/latest` is the right default and lowers the barrier to getting started.
-The trade-off: when SailPoint releases a new annual version, `/latest` flips automatically. If a
-function that only existed in an older version has breaking changes in the new version, your
-integration will see them without a code change triggering the review. Treat each SailPoint annual
-release as a change event: review the release notes, test the integration. This is the same
-discipline you'd apply to any upstream dependency releasing a major version.
-
-*Why not just pin to an explicit version?* Pinning feels safer but defers the same problem to a
-3-year cliff. When the pinned version reaches end of life, you face a forced rewrite — often
-against a deadline, often by someone who didn't write the original code. `/latest` keeps you
-current continuously instead of accumulating that debt.
-
-**When explicit versioning is appropriate:**
-- You have a specific reason to pin (regulatory audit trail, change-freeze environment)
-- A dependent system requires a known stable interface and cannot tolerate any behavioral change
+If you still encounter `/latest` in brownfield code, inventory it and migrate to pinned
+`/service/vN` paths before Q1 2029. Experimental endpoints still require
+`X-SailPoint-Experimental: true` regardless of path shape.
 
 ---
 

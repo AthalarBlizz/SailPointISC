@@ -57,7 +57,7 @@ Prefer /access-requests/v1 for create/status patterns. Some configuration endpoi
 1. **Why must peer clone submit access requests?**
    - To preserve approvals, SoD, and audit. Direct grants bypass governance the business relies on.
 2. **Name one migration foot-gun specific to access APIs.**
-   - Some access-request-config / entitlements paths map to v2, not v1 — verify in the official migration table.
+   - `access-request-config` has v1 and v2; entitlements prefer `/entitlements/v1` in local OpenAPI, but the migration table may list v2 for some v2026 cases — verify both.
 
 ## Interactive learning
 

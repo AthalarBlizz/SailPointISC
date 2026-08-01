@@ -53,7 +53,7 @@ export const modules: Module[] = [
               ['Account', 'nativeIdentity + source, or identityId', '/accounts/v1'],
               ['Source', 'name → id', '/sources/v1'],
               ['Lifecycle state', 'name on identity profile', 'identity-profiles …/lifecycle-states'],
-              ['Role / AP / entitlement', 'name → id', '/roles/v1, /access-profiles/v1, /entitlements/v2'],
+              ['Role / AP / entitlement', 'name → id', '/roles/v1, /access-profiles/v1, /entitlements/v1 (verify)'],
             ],
           },
           {
@@ -307,7 +307,7 @@ configuration = Configuration()  # SDK refreshes tokens`,
             code: `# PREFER (per-service semantic version)
 https://{tenant}.api.identitynow.com/accounts/v1
 https://{tenant}.api.identitynow.com/identities/v1
-https://{tenant}.api.identitynow.com/entitlements/v2   # outlier — check table
+https://{tenant}.api.identitynow.com/entitlements/v1   # confirm OpenAPI; migration table may differ
 
 # LEGACY yearly / aliases (works until Q1 2029)
 https://{tenant}.api.identitynow.com/v2026/accounts
@@ -361,7 +361,7 @@ const page = await api.listAccountsV1({ limit: 250, filters: 'identityId eq "…
     ],
     failureModes: [
       'Shipping /latest because “it always follows current” — silent break on flip.',
-      'Assuming every legacy path maps to v1 (entitlements and some config → v2).',
+      'Assuming every legacy path maps to v1 (access-request-config has v2; entitlements — verify OpenAPI + migration table).',
       'Migrating SDK classes but leaving workflow HTTP actions on /v2025.',
       'Treating EOL as “2029 problem” with no inventory before support ends Q2 2028.',
     ],

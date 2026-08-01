@@ -10,11 +10,11 @@ Cold open. Capstones and drills turn fluency into habit. Design deliverables plu
 
 Outcome: complete capstones A through D, keep a weak-topic queue honest, and run the weekly drill without notes on the Snapshot facts.
 
-Capstone A — emergency disable as an integration spec. Deliver a language-agnostic REST call sheet plus a TypeScript sketch using current slash service slash v one paths. Compare to scenario one. Name-resolve identity and lifecycle. Verify with G E T.
+Capstone A — emergency disable as an integration spec. Deliver a language-agnostic REST call sheet plus a TypeScript sketch using current slash service slash v one paths. Compare to scenario one. Name-resolve identity and lifecycle. Verify with GET.
 
 Capstone B — compliance bridge. Design nightly automation: external C S V to rules to lifecycle or access request. Python or TypeScript. Dry-run mode required. No silent mutate in production without a switch.
 
-Capstone C — peer access provisioner. Port scenario three’s design to software development kit two point x method names even if you cannot execute live. Include the approval-preserving narrative — submit requests, don’t bypass governance.
+Capstone C — peer access provisioner. Port scenario three’s design to S D K two point x method names even if you cannot execute live. Include the approval-preserving narrative — submit requests, don’t bypass governance.
 
 Capstone D — migration advisory. Given a fictional inventory — v two zero two four scripts, v two zero two five workflows, one slash latest job — produce a plan. Inventory, map via the official table, run S D K migration scripts, scan workflow H T T P with Analyzer mindset, replace slash latest with pinned per-service paths, test, and track to Q two twenty twenty-eight support end and Q one twenty twenty-nine hard end of life.
 

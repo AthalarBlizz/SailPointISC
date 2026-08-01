@@ -37,8 +37,8 @@ export const fluencyLabs: Lab[] = [
       {
         id: 'v-entitlements',
         legacy: '/v2026/entitlements',
-        modern: '/entitlements/v2',
-        hint: 'Outlier: v2026 entitlements map to v2 in the migration table.',
+        modern: '/entitlements/v1',
+        hint: 'Prefer /entitlements/v1 from OpenAPI; migration table may list v2 for some v2026 cases — verify both.',
       },
       {
         id: 'v-latest',

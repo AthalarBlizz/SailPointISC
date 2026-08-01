@@ -51,7 +51,7 @@ flowchart LR
 | Account | nativeIdentity + source, or identityId | /accounts/v1 |
 | Source | name → id | /sources/v1 |
 | Lifecycle state | name on identity profile | identity-profiles …/lifecycle-states |
-| Role / AP / entitlement | name → id | /roles/v1, /access-profiles/v1, /entitlements/v2 |
+| Role / AP / entitlement | name → id | /roles/v1, /access-profiles/v1, /entitlements/v1 (verify OpenAPI + migration table) |
 
 ### Who owns the change?
 

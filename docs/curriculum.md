@@ -100,12 +100,12 @@ flowchart LR
 ### Study
 1. Skim [developer.sailpoint.com](https://developer.sailpoint.com/docs/) landing and API overview.
 2. Read this repo’s `README.md` and the three scenario docstrings in `src/scenario*.py` — they are “why the API exists” stories.
-3. Read `docs/isc-development-guide.md` sections on base URL and auth (note: some yearly-version advice is pre-migration; Phase 2 corrects that).
+3. Read `docs/isc-development-guide.md` sections on base URL, auth, and dual-world versioning (aligned with Phase 2 / July 2026).
 
 ### Conversational checkpoint
 You can answer without notes:
 - “What’s the difference between an entitlement, access profile, and role?”
-- “If ITDR needs someone disabled *now*, why isn’t waiting for the next HR file enough?”
+- “If ITDR (Identity Threat Detection and Response) needs someone disabled *now*, why isn’t waiting for the next HR file enough?”
 - “UI vs API — when do you reach for code?”
 
 ---
@@ -113,8 +113,8 @@ You can answer without notes:
 ## Phase 1 — Authentication, authorization, and HTTP craft
 
 ### Learning outcomes
-- Describe PAT + client-credentials flow end to end.
-- Separate **user level** vs **scopes**.
+- Describe PAT (Personal Access Token) + client-credentials flow end to end.
+- Separate **user level** (permission on the PAT owner, e.g. ORG_ADMIN) vs **scopes** (OAuth grants on the token).
 - Diagnose 401 / 403 / 429 correctly.
 - Store secrets with **python-keyring** (this repo’s standard) — never in source or chat.
 
@@ -226,7 +226,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
 1. Open `api-specs/idn/sailpoint-api.yaml` and find Access Profiles / Accounts tags — confirm `version: v1` at the top.
 2. Open a legacy path YAML under `api-specs/idn/v2026/paths/` and compare mentally to `/accounts/v1`.
 3. Pick three endpoints from scenario 1–3; look them up in the [migration path table](https://developer.sailpoint.com/docs/api/api-versioning-migration/) and write old → new.
-4. Note outliers that map to **v2** (e.g. some `/access-request-config`, `/entitlements` cases) — these are interview gold.
+4. Note outliers that map to **v2** (e.g. `/access-request-config` has v1 and v2). Prefer `/entitlements/v1` from local OpenAPI; if the migration table lists v2 for some v2026 entitlements cases, verify both — interview gold is “I checked the table and the spec.”
 
 ### Conversational checkpoint
 - “Why did SailPoint abandon yearly API versions?”
@@ -416,7 +416,7 @@ Talk like someone who has shipped integrations.
 7. **Agentic development:** `CLAUDE.md` + local OpenAPI beats model memory — especially during the 2026 versioning transition.
 
 ### Practice
-Write an ADR (one page): “Greenfield ISC integration standards for our team — July 2026.”
+Write an ADR (Architecture Decision Record — one page): “Greenfield ISC integration standards for our team — July 2026.”
 
 Include: auth, SDK choice, versioning, secret storage, dry-run flags, migration deadline.
 
@@ -467,7 +467,7 @@ Pick three:
 | `api-specs/idn/v2025`, `v2026` | Legacy yearly specs (still needed to read older code) |
 | `src/scenario*.py` | Pattern library (REST vs SDK; dry-run; governance) |
 | `CLAUDE.md` | Agent rules — update mental model with Phase 2 when generating **new** code |
-| `docs/isc-development-guide.md` | Strong on auth/filters/PATCH; **reconcile versioning section with Phase 2** |
+| `docs/isc-development-guide.md` | Auth, filters, PATCH, dual-world versioning (aligned with Phase 2) |
 | `devdays2026.pdf` | Narrative “why API” context from DevDays 2026 |
 
 **Important bias check:** Prefer teaching **per-service + SDK 2.x** for anything you invent going forward. Use yearly examples as literacy for existing code and this workshop, not as the default for greenfield.
@@ -476,13 +476,29 @@ Pick three:
 
 ## Conversational glossary (quick reference)
 
+Synced with the web app glossary (`web/src/content/glossary.ts`). In the [learning app](../web/) (including GitHub Pages), dotted underlines show hover/tap tooltips for these terms.
+
 | Phrase you’ll hear | Meaning |
 | --- | --- |
-| “PAT” | Personal Access Token (OAuth client for scripts) |
+| “ISC” | Identity Security Cloud — SailPoint’s SaaS identity governance platform |
+| “PAT” | Personal Access Token (OAuth client credentials for scripts) |
 | “VA” | Virtual Appliance (on-prem connectivity); contrast SaaS connectors |
 | “OOTB connector” | Out-of-the-box source connector |
 | “JML” | Joiner / Mover / Leaver |
 | “SoD” | Segregation of Duties |
+| “ITDR” | Identity Threat Detection and Response |
+| “SIEM” | Security Information and Event Management |
+| “SOAR” | Security Orchestration, Automation, and Response |
+| “ITSM” | IT Service Management (e.g. ServiceNow) |
+| “ADR” | Architecture Decision Record |
+| “EOL” | End of life — legacy APIs stop Q1 2029 |
+| “GUID” | Tenant-specific object ID — resolve by name at runtime |
+| “Workflow Analyzer” | Finds legacy yearly or `/latest` paths in workflow HTTP actions |
+| “/latest” | Yearly-alias shortcut — unsafe for production; pin `/service/vN` |
+| “BeanShell” | Language for ISC cloud Rules when transforms are not enough |
+| “user level” | Permission on the PAT owner (separate from OAuth scopes) |
+| “greenfield” / “brownfield” | New work vs existing yearly/`/latest` code to migrate |
+| “JSON Patch” | Partial update document (`application/json-patch+json`) |
 | “Experimental header” | `X-SailPoint-Experimental: true` |
 | “Deprecation header” | `X-Deprecated: true` on responses |
 | “Per-service v1” | Current URL style `/accounts/v1` |
@@ -490,6 +506,15 @@ Pick three:
 | “SDK 2.0 / V1 suffix” | New client method naming (`listAccountsV1`) |
 | “Integration spec” | Raw HTTP contract for another platform to call |
 | “Loopback connector” | SaaS connector that drives ISC via its own API |
+| “searchAfter” | Search pagination past the 10k offset limit |
+| “spcx” | Local SaaS Connectivity debug server |
+| “Connector customizer” | TypeScript hooks on SaaS connector I/O |
+| “Transform” / “Rule” | JSON attribute mapping vs BeanShell (reviewed) logic |
+| “SaaS Connectivity” | TypeScript custom connectors in SailPoint cloud |
+| “Aggregation” / “Provisioning” | Pull into ISC vs push out to sources |
+| “dry-run” | Preview mutations without committing |
+| “V2 outlier” | Service on `/v2` (e.g. access-request-config) — verify specs |
+| “sp:scopes:default” / “sp:scopes:all” | Minimal vs full PAT scope posture |
 
 ---
 

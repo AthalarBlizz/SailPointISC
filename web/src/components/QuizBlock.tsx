@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useProgress } from '../hooks/useProgress'
+import { annotateGlossary } from '../lib/glossaryTerms'
 
 type QuizProps = {
   id: string
@@ -20,7 +21,7 @@ export function QuizBlock({ id, prompt, choices, correctId, explanation }: QuizP
   return (
     <div className={`quiz-block${already ? ' quiz-passed' : ''}`}>
       <div className="eyebrow">Micro-check</div>
-      <p className="quiz-prompt">{prompt}</p>
+      <p className="quiz-prompt">{annotateGlossary(prompt, { keyPrefix: `${id}-q` })}</p>
       <div className="quiz-choices" role="radiogroup" aria-label="Quiz choices">
         {choices.map((c) => {
           const chosen = selected === c.id
@@ -37,7 +38,10 @@ export function QuizBlock({ id, prompt, choices, correctId, explanation }: QuizP
               onClick={() => setSelected(c.id)}
               aria-pressed={chosen}
             >
-              {c.label}
+              {annotateGlossary(c.label, {
+                keyPrefix: `${id}-${c.id}`,
+                interactive: false,
+              })}
             </button>
           )
         })}
@@ -62,7 +66,7 @@ export function QuizBlock({ id, prompt, choices, correctId, explanation }: QuizP
           ) : (
             <strong>Not quite.</strong>
           )}{' '}
-          {explanation}
+          {annotateGlossary(explanation, { keyPrefix: `${id}-x` })}
           {!already && !isCorrect ? (
             <div className="actions" style={{ marginTop: '0.5rem' }}>
               <button

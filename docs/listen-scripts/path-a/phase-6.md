@@ -16,9 +16,9 @@ Rules are BeanShell for logic transforms cannot express. Expect SailPoint review
 
 Workflows are low-code plus H T T P actions for event-driven process automation. Scan those H T T P actions for legacy yearly paths and slash latest. Use Workflow Analyzer mindset: find them, rewrite to per-service paths, verify before Q one twenty twenty-nine.
 
-SaaS Connectivity is TypeScript custom connectors in SailPoint cloud — target reachable from cloud, spcx for local debug. Connector customizers are TypeScript hooks to tweak out-of-the-box connector input and output — more flexible than classic rules for many SaaS sources.
+SaaS Connectivity is TypeScript custom connectors in SailPoint cloud — target reachable from cloud, with spcx — the SaaS Connectivity local debugger — for local debug. Connector customizers are TypeScript hooks to tweak out-of-the-box connector input and output — more flexible than classic rules for many SaaS sources. Contrast with on-prem: systems that need a virtual appliance — V A — or classic connectivity stay on that path; do not force a SaaS connector when the target is not cloud-reachable.
 
-External integrations remain this curriculum’s core: any language via A P I for ITDR, H R, SIEM, ticketing — Personal Access Token plus per-service call sheet.
+External integrations remain this curriculum’s core: any language via A P I for I T D R, H R, S I E M, ticketing — Personal Access Token plus per-service call sheet.
 
 Decision tree in words: attribute mapping only — transform. Event side effects over H T T P — workflow. Need a new Source to aggregate and provision — SaaS Connectivity. Tweak an out-of-the-box connector’s I O — customizer. Complex BeanShell only — rule. Otherwise external A P I script.
 

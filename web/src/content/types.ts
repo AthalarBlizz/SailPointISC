@@ -86,8 +86,14 @@ export type SnapshotRow = {
 }
 
 export type GlossaryEntry = {
+  /** Canonical display name on the glossary page */
   term: string
   meaning: string
+  /**
+   * Strings to match in app prose (longest match wins).
+   * Defaults to `[term]` when omitted.
+   */
+  aliases?: string[]
 }
 
 export type TrackerItem = {

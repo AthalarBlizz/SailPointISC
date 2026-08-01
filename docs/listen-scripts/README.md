@@ -33,7 +33,28 @@ Second utterance after a pause.
 Third utterance.
 ```
 
-Do not put code fences, tables, or raw URLs in the body — those are awkward for speech. Spell acronyms the way you want them spoken (e.g. `I S C`, `A P I`).
+Do not put code fences, tables, or raw URLs in the body — those are awkward for speech.
+
+## Speech style guide
+
+**Letter-space** acronyms engineers say letter-by-letter (so TTS does not invent a word):
+
+| Say | Not |
+|-----|-----|
+| `I S C`, `A P I`, `S D K`, `P A T`, `H T T P`, `H R` | bare `ISC`, `API`, `SDK`, `PAT` |
+| `I T D R`, `I T S M`, `S I E M`, `S O A R`, `R P A` | bare `ITDR`, `ITSM`, … |
+| `V A`, `C L I`, `A D R`, `S L A`, `S L O`, `C I`, `I D`, `U I` | bare forms TTS may mangle |
+| `Open A P I` | `OpenAPI` mashed into one token |
+
+**Say as words** (product / tech names): TypeScript, PowerShell, BeanShell, Python, OAuth, JSON, YAML (“yaml”), REST, SaaS, Node, npm, ServiceNow, Salesforce, Postman, GUID (“goo-id”).
+
+**Define once, then short form:** first mention “software development kit — S D K” or “Personal Access Token — P A T”, then **S D K** / **P A T** only. Do not expand “software development kit” on every later mention.
+
+**HTTP methods:** say `GET`, `PUT`, or `PATCH` as method words — never letter-space `P A T C H` (collides with **P A T**). Prefer “PATCH — the H T T P method” on first use in a unit if helpful.
+
+**Paths:** “slash identities slash v one”, “slash latest”.
+
+**Niche tools:** gloss on first hear in that path (e.g. “spcx — the SaaS Connectivity local debugger”, “K M S — a key management service”).
 
 ## Review workflow
 

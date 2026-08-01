@@ -29,7 +29,7 @@ Per-service versioning is current. Legacy yearly/v3/beta remain until Q1 2029; s
 - Inventory: repos, workflow HTTP actions, ServiceNow, RPA, notebooks.
 - Classify: already /service/vN, yearly, /latest, experimental.
 - Automate: SDK migration scripts (TS/Python/Go/PS) + Workflow Analyzer.
-- Manual: V2 outliers (e.g. some entitlements / access-request-config).
+- Manual: V2 outliers (e.g. `access-request-config`; entitlements — verify migration table vs OpenAPI, do not hardcode `/entitlements/v2`).
 - Prove: contract tests; dual-run if needed; cut /latest.
 - Govern: CI deny-lists for /v2024|/v2025|/v2026|/latest in new code.
 
@@ -56,7 +56,7 @@ Per-service versioning is current. Legacy yearly/v3/beta remain until Q1 2029; s
 1. **Outline a migration plan for v2024 scripts, v2025 workflows, and one /latest job.**
    - Inventory → map via official table → SDK migration scripts for code → Workflow Analyzer for HTTP actions → replace /latest with pinned /service/vN → test → track to Q2 2028/Q1 2029.
 2. **Why call out V2 outliers explicitly?**
-   - Not every legacy path maps to v1; blind search-replace to /v1 breaks entitlements/config endpoints that moved to v2.
+   - Not every legacy path maps to v1; blind search-replace to /v1 breaks config endpoints that moved to v2 (e.g. access-request-config). For entitlements, confirm `/entitlements/v1` in OpenAPI and check the migration table before assuming v2.
 
 ## Interactive learning
 

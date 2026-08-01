@@ -50,7 +50,8 @@ flowchart TB
 
 ### Path shapes
 
-- Prefer: `/accounts/v1`, `/identities/v1`, `/entitlements/v2` (check migration table for outliers).
+- Prefer: `/accounts/v1`, `/identities/v1`, `/entitlements/v1` (confirm in OpenAPI).
+- Outliers: `access-request-config` has v1 and v2; migration table may map some v2026 entitlements cases to v2 — always verify both the migration table and `sailpoint-api.yaml`.
 - Legacy until Q1 2029: `/v2026/accounts`, `/v3/...`, `/latest/...` (avoid `/latest` in production).
 
 > Yearly collections forced churn without contract breaks. Majors bump only on breaking changes; services version independently.
@@ -58,7 +59,7 @@ flowchart TB
 ## Failure modes
 
 - Shipping /latest because “it always follows current” — silent break on flip.
-- Assuming every legacy path maps to v1 (entitlements and some config → v2).
+- Assuming every legacy path maps to v1 (e.g. access-request-config has v2; entitlements may differ between migration table and OpenAPI — verify both).
 - Migrating SDK classes but leaving workflow HTTP actions on /v2025.
 - Treating EOL as “2029 problem” with no inventory before support ends Q2 2028.
 

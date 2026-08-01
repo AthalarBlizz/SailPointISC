@@ -55,3 +55,7 @@ Production builds use `VITE_BASE=/SailPointISC/`. HashRouter for deep links (`..
 - Listen scripts (source of truth): `../docs/listen-scripts/` — Markdown per phase/module; loaded at build time
 - Badges: `src/content/badges.ts`
 - Shared: snapshot, glossary, labs
+
+### Glossary tooltips
+
+Abbreviations and niche terms in lesson prose (and quiz prompts) get a dotted underline. Hover or focus shows a short definition; tap toggles on touch devices. **Open glossary** deep-links to `#/glossary?term=…` (works with HashRouter on GitHub Pages). Source of truth: `src/content/glossary.ts` (keep `docs/curriculum.md` conversational glossary in sync).

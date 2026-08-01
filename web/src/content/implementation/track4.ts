@@ -252,7 +252,7 @@ export const modules: Module[] = [
               'Inventory: repos, workflow HTTP actions, ServiceNow, RPA, notebooks.',
               'Classify: already /service/vN, yearly, /latest, experimental.',
               'Automate: SDK migration scripts (TS/Python/Go/PS) + Workflow Analyzer.',
-              'Manual: V2 outliers (e.g. some entitlements / access-request-config).',
+              'Manual: V2 outliers (e.g. access-request-config; entitlements — verify migration table vs OpenAPI).',
               'Prove: contract tests; dual-run if needed; cut /latest.',
               'Govern: CI deny-lists for /v2024|/v2025|/v2026|/latest in new code.',
             ],
@@ -308,7 +308,7 @@ export const modules: Module[] = [
         id: 'm19-d2',
         prompt: 'Why call out V2 outliers explicitly?',
         answer:
-          'Not every legacy path maps to v1; blind search-replace to /v1 breaks entitlements/config endpoints that moved to v2.',
+          'Not every legacy path maps to v1; blind search-replace to /v1 breaks config endpoints that moved to v2 (e.g. access-request-config). For entitlements, confirm /entitlements/v1 in OpenAPI and check the migration table before assuming v2.',
       },
     ],
   },
