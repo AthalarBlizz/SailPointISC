@@ -150,11 +150,24 @@
   margin: 0 auto;
 }
 
+.main-solo {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 860px;
+  width: 100%;
+  justify-self: center;
+}
+
 @media (min-width: 960px) {
   .main {
     padding: 2rem 2rem 3rem;
     grid-column: 2;
     grid-row: 2;
+  }
+
+  .main-solo {
+    grid-column: 1 / -1;
+    padding: 2rem;
   }
 }
 

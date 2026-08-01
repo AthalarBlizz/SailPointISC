@@ -33,6 +33,8 @@ export const localStorageAdapter: StorageAdapter = {
 
 const STORAGE_KEY_V1 = 'isc-curriculum-progress-v1'
 const STORAGE_KEY_V2 = 'isc-curriculum-progress-v2'
+/** Bumped when client progress shape or click-critical behavior changes. */
+const STORAGE_KEY = 'isc-curriculum-progress-v3'
 
 export type LearningPathId = 'fluency' | 'implementation'
 export type DrillRating = 'knew' | 'needs-work'
@@ -106,19 +108,36 @@ function migrateV1(raw: string): DualProgressState | null {
   }
 }
 
+function normalizeDual(parsed: DualProgressState): DualProgressState {
+  return {
+    ...defaultDualProgress(),
+    ...parsed,
+    fluency: { ...defaultPathProgress(), ...parsed.fluency },
+    implementation: { ...defaultPathProgress(), ...parsed.implementation },
+  }
+}
+
 export function loadDualProgress(
   adapter: StorageAdapter = localStorageAdapter,
 ): DualProgressState {
+  const current = adapter.getItem(STORAGE_KEY)
+  if (current) {
+    try {
+      return normalizeDual(JSON.parse(current) as DualProgressState)
+    } catch {
+      /* fall through */
+    }
+  }
   const v2 = adapter.getItem(STORAGE_KEY_V2)
   if (v2) {
     try {
-      const parsed = JSON.parse(v2) as DualProgressState
-      return {
-        ...defaultDualProgress(),
-        ...parsed,
-        fluency: { ...defaultPathProgress(), ...parsed.fluency },
-        implementation: { ...defaultPathProgress(), ...parsed.implementation },
-      }
+      const migrated = normalizeDual(JSON.parse(v2) as DualProgressState)
+      // Force path chooser once after the click-freeze fix so users aren't stuck
+      // behind a half-rendered shell from a prior bad session.
+      migrated.pathChosen = false
+      saveDualProgress(migrated, adapter)
+      adapter.removeItem(STORAGE_KEY_V2)
+      return migrated
     } catch {
       /* fall through */
     }
@@ -127,6 +146,7 @@ export function loadDualProgress(
   if (v1) {
     const migrated = migrateV1(v1)
     if (migrated) {
+      migrated.pathChosen = false
       saveDualProgress(migrated, adapter)
       return migrated
     }
@@ -138,7 +158,7 @@ export function saveDualProgress(
   state: DualProgressState,
   adapter: StorageAdapter = localStorageAdapter,
 ): void {
-  adapter.setItem(STORAGE_KEY_V2, JSON.stringify(state))
+  adapter.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
 export function resetDualProgress(
@@ -147,6 +167,7 @@ export function resetDualProgress(
   const fresh = defaultDualProgress()
   saveDualProgress(fresh, adapter)
   adapter.removeItem(STORAGE_KEY_V1)
+  adapter.removeItem(STORAGE_KEY_V2)
   return fresh
 }
 

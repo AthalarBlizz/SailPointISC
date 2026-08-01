@@ -48,6 +48,14 @@
   appearance: none;
   color: inherit;
   font: inherit;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.path-card:active {
+  transform: scale(0.99);
 }
 
 .path-card:hover {

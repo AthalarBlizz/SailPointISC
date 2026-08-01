@@ -18,6 +18,7 @@ export function HomePage() {
     resetActivePath,
     resetAll,
     dual,
+    getContinueRoute,
   } = useProgress()
 
   if (!pathChosen) {
@@ -35,7 +36,11 @@ export function HomePage() {
           <button
             type="button"
             className="card path-card"
-            onClick={() => choosePath('fluency')}
+            onClick={() => {
+              choosePath('fluency')
+              // Hash navigation ensures UI updates even if a prior bundle was sticky.
+              window.location.hash = '#/'
+            }}
           >
             <span className="chip">Path A · ~2–3 weeks</span>
             <h2 style={{ marginTop: '0.65rem' }}>Conversational fluency</h2>
@@ -47,7 +52,10 @@ export function HomePage() {
           <button
             type="button"
             className="card path-card"
-            onClick={() => choosePath('implementation')}
+            onClick={() => {
+              choosePath('implementation')
+              window.location.hash = '#/'
+            }}
           >
             <span className="chip">Path B · ~8–12 weeks</span>
             <h2 style={{ marginTop: '0.65rem' }}>Senior implementation</h2>
@@ -57,6 +65,24 @@ export function HomePage() {
             </p>
           </button>
         </div>
+        <p className="muted" style={{ marginTop: '1.5rem' }}>
+          Clicks not working?{' '}
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              try {
+                localStorage.clear()
+              } catch {
+                /* ignore */
+              }
+              window.location.href = `${import.meta.env.BASE_URL}#/?fresh=${Date.now()}`
+              window.location.reload()
+            }}
+          >
+            Clear saved data and reload
+          </button>
+        </p>
       </div>
     )
   }
@@ -70,10 +96,7 @@ export function HomePage() {
 
   if (activePath === 'fluency') {
     const phaseDone = progress.completedItems.length
-    const continueTo =
-      progress.lastRoute && progress.lastRoute !== '/'
-        ? progress.lastRoute
-        : '/phase/phase-0'
+    const continueTo = getContinueRoute('/phase/phase-0')
 
     return (
       <HomeShell
@@ -120,10 +143,7 @@ export function HomePage() {
   }
 
   const modDone = progress.completedItems.length
-  const continueTo =
-    progress.lastRoute && progress.lastRoute !== '/'
-      ? progress.lastRoute
-      : '/module/m0'
+  const continueTo = getContinueRoute('/module/m0')
 
   return (
     <HomeShell

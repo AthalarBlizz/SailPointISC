@@ -25,7 +25,9 @@ type ProgressContextValue = {
   progress: PathProgress
   setActivePath: (path: LearningPathId) => void
   choosePath: (path: LearningPathId) => void
-  setLastRoute: (route: string) => void
+  /** Persist continue URL without triggering React updates on every navigation. */
+  rememberRoute: (route: string) => void
+  getContinueRoute: (fallback: string) => string
   toggleItemComplete: (itemId: string) => void
   toggleTracker: (id: string) => void
   setDrillRating: (drillId: string, rating: DrillRating) => void
@@ -47,6 +49,22 @@ function updateActive(
   return { ...dual, [key]: fn(dual[key]) }
 }
 
+const ROUTE_STORAGE_KEY = 'isc-curriculum-progress-v3'
+
+function persistRoute(path: LearningPathId, route: string) {
+  try {
+    const raw = localStorage.getItem(ROUTE_STORAGE_KEY)
+    if (!raw) return
+    const dual = JSON.parse(raw) as DualProgressState
+    if (!dual[path]) return
+    if (dual[path].lastRoute === route) return
+    dual[path].lastRoute = route
+    localStorage.setItem(ROUTE_STORAGE_KEY, JSON.stringify(dual))
+  } catch {
+    /* ignore */
+  }
+}
+
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [dual, setDual] = useState<DualProgressState>(() => loadDualProgress())
 
@@ -62,12 +80,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setDual((d) => ({ ...d, activePath: path, pathChosen: true }))
   }, [])
 
-  const setLastRoute = useCallback((route: string) => {
-    setDual((d) => {
-      if (d[d.activePath].lastRoute === route) return d
-      return updateActive(d, (p) => ({ ...p, lastRoute: route }))
-    })
-  }, [])
+  const rememberRoute = useCallback(
+    (route: string) => {
+      persistRoute(dual.activePath, route)
+    },
+    [dual.activePath],
+  )
+
+  const getContinueRoute = useCallback(
+    (fallback: string) => {
+      const route = dual[dual.activePath].lastRoute
+      return route && route !== '/' ? route : fallback
+    },
+    [dual],
+  )
 
   const toggleItemComplete = useCallback((itemId: string) => {
     setDual((d) =>
@@ -169,7 +195,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       progress: dual[dual.activePath],
       setActivePath,
       choosePath,
-      setLastRoute,
+      rememberRoute,
+      getContinueRoute,
       toggleItemComplete,
       toggleTracker,
       setDrillRating,
@@ -184,7 +211,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       dual,
       setActivePath,
       choosePath,
-      setLastRoute,
+      rememberRoute,
+      getContinueRoute,
       toggleItemComplete,
       toggleTracker,
       setDrillRating,
