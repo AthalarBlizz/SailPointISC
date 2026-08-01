@@ -396,6 +396,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'Domain APIs',
     estTime: '3–5 days',
     goal: 'Design an integration verbally',
+    listenScript: phaseListenScripts['phase-3'],
     outcomes: [
       'Design joiner/mover/leaver, emergency disable, access request, peer clone, and search verbally.',
     ],
@@ -488,6 +489,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'TypeScript',
     estTime: '2–3 days',
     goal: 'Sketch TS code in a review',
+    listenScript: phaseListenScripts['phase-4'],
     outcomes: [
       'Scaffold a TS API project with SailPoint CLI.',
       'Call a V1 method with filters.',
@@ -587,6 +589,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'SDK choices',
     estTime: '1–2 days',
     goal: 'Pick the right language/tool',
+    listenScript: phaseListenScripts['phase-5'],
     outcomes: [
       'Choose among TypeScript, Python, Go, PowerShell, and raw REST — and know the CLI’s role.',
     ],
@@ -655,6 +658,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'Extensibility',
     estTime: '2–3 days',
     goal: 'Transforms vs rules vs workflows vs connectors',
+    listenScript: phaseListenScripts['phase-6'],
     outcomes: [
       'Name the extension-point menu and pick the right one for a use case.',
     ],
@@ -760,6 +764,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'Production',
     estTime: '1–2 days',
     goal: 'Security, rate limits, ops',
+    listenScript: phaseListenScripts['phase-7'],
     outcomes: ['Talk like someone who has shipped integrations.'],
     sections: [
       {
@@ -819,6 +824,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
     shortTitle: 'Capstones',
     estTime: 'ongoing',
     goal: 'Sound senior in conversation',
+    listenScript: phaseListenScripts['phase-8'],
     outcomes: [
       'Complete capstones A–D and run weekly 15-minute fluency drills.',
     ],

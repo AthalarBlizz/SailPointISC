@@ -404,6 +404,7 @@ const page = await api.listAccountsV1({ limit: 250, filters: 'identityId eq "…
     goal: 'Never invent endpoints — read local specs and generate typed clients from truth',
     trackId: 'track-0',
     fluencyPhaseId: 'phase-2',
+    listenScript: moduleListenScripts.m3,
     outcomes: [
       'Locate an operation in api-specs/idn (current sailpoint-api.yaml vs legacy yearly folders).',
       'Extract method, path, scopes, and required headers before writing code.',

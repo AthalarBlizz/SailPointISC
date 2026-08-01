@@ -1,5 +1,6 @@
 import type { Module } from '../types'
 import { DIAGRAM_EXTENSIBILITY, DIAGRAM_CONNECTOR_LIFECYCLE } from '../diagrams'
+import { moduleListenScripts } from '../listenScripts'
 
 export const modules: Module[] = [
   {
@@ -11,6 +12,7 @@ export const modules: Module[] = [
     goal: 'Prefer transforms for deterministic attribute calculate/map on aggregate/provision',
     trackId: 'track-3',
     fluencyPhaseId: 'phase-6',
+    listenScript: moduleListenScripts.m12,
     labs: ['lab-capstone-e', 'lab-decision-extension'],
     outcomes: [
       'Author/read transform JSON (type, attributes, input) for common patterns.',
@@ -147,6 +149,7 @@ const list = await transforms.listTransformsV1({ limit: 50 });`,
     goal: 'Use rules sparingly with review, install, and ops constraints understood',
     trackId: 'track-3',
     fluencyPhaseId: 'phase-6',
+    listenScript: moduleListenScripts.m13,
     labs: ['lab-decision-extension'],
     outcomes: [
       'List rule types/use cases that transforms cannot cover.',
@@ -232,6 +235,7 @@ const list = await transforms.listTransformsV1({ limit: 50 });`,
     goal: 'Design workflows that stay on current API versions and clear ownership',
     trackId: 'track-3',
     fluencyPhaseId: 'phase-6',
+    listenScript: moduleListenScripts.m14,
     labs: ['lab-capstone-f', 'lab-decision-extension'],
     outcomes: [
       'Place workflows vs external SDK jobs vs transforms correctly.',
@@ -323,6 +327,7 @@ Content-Type: application/json
     goal: 'Build or evaluate custom cloud connectors with connector-sdk + spcx',
     trackId: 'track-3',
     fluencyPhaseId: 'phase-6',
+    listenScript: moduleListenScripts.m15,
     labs: ['lab-capstone-g', 'lab-decision-extension'],
     outcomes: [
       'Explain when OOTB is insufficient and SaaS Connectivity is justified.',
@@ -444,6 +449,7 @@ export const connector = createConnector()
     goal: 'Mutate SaaS connector I/O without forking the whole connector',
     trackId: 'track-3',
     fluencyPhaseId: 'phase-6',
+    listenScript: moduleListenScripts.m16,
     labs: ['lab-decision-extension'],
     outcomes: [
       'Explain customizer vs full custom connector vs classic rule.',

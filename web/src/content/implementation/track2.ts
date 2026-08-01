@@ -1,4 +1,5 @@
 import type { Module } from '../types'
+import { moduleListenScripts } from '../listenScripts'
 
 export const modules: Module[] = [
   {
@@ -10,6 +11,7 @@ export const modules: Module[] = [
     goal: 'Ship typed Node/TS clients using resource APIs and V1 method suffixes',
     trackId: 'track-2',
     fluencyPhaseId: 'phase-4',
+    listenScript: moduleListenScripts.m8,
     labs: ['lab-impl-sdk-ts'],
     outcomes: [
       'Scaffold Configuration + AccountsApi/IdentitiesApi and call list*V1 methods.',
@@ -122,6 +124,7 @@ const accts = await accounts.listAccountsV1({
     goal: 'Write automation with SDK 2.x resource APIs while literate in 1.4.x workshop code',
     trackId: 'track-2',
     fluencyPhaseId: 'phase-5',
+    listenScript: moduleListenScripts.m9,
     labs: ['lab-capstone-b'],
     outcomes: [
       'Configure via env/keyring and call version-suffixed methods.',
@@ -230,6 +233,7 @@ configuration = Configuration()`,
     goal: 'Select and migrate Go/PS clients with the same per-service mental model',
     trackId: 'track-2',
     fluencyPhaseId: 'phase-5',
+    listenScript: moduleListenScripts.m10,
     outcomes: [
       'Know when Go or PowerShell is the right official SDK vs REST.',
       'Expect resource APIs + versioned methods after SDK 2.x-style migrations.',
@@ -322,6 +326,7 @@ configuration = Configuration()`,
     goal: 'Use the CLI as the standard bootstrap path for SDK and connector projects',
     trackId: 'track-2',
     fluencyPhaseId: 'phase-5',
+    listenScript: moduleListenScripts.m11,
     labs: ['lab-impl-sdk-ts'],
     outcomes: [
       'Init TypeScript (or other) SDK projects and config via CLI.',

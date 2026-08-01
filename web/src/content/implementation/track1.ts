@@ -1,5 +1,6 @@
 import type { Module } from '../types'
 import { DIAGRAM_SEARCH_VS_LIST, DIAGRAM_LEAVER } from '../diagrams'
+import { moduleListenScripts } from '../listenScripts'
 
 export const modules: Module[] = [
   {
@@ -11,6 +12,7 @@ export const modules: Module[] = [
     goal: 'Produce a complete HTTP call sheet another system can implement without an SDK',
     trackId: 'track-1',
     fluencyPhaseId: 'phase-5',
+    listenScript: moduleListenScripts.m4,
     labs: ['lab-impl-rest-client'],
     outcomes: [
       'Write method, URL, headers, body, expected status, and verify GET for a multi-step flow.',
@@ -133,6 +135,7 @@ GET /identities/v1/{identityId}
     goal: 'Query and update at enterprise scale without foot-guns',
     trackId: 'track-1',
     fluencyPhaseId: 'phase-3',
+    listenScript: moduleListenScripts.m5,
     labs: ['lab-filters'],
     outcomes: [
       'Write standard collection filters with eq/sw/co/in/and and correct quoting.',
@@ -271,6 +274,7 @@ identityId eq "abc-123"`,
     goal: 'Implement JML and emergency disable against the right APIs',
     trackId: 'track-1',
     fluencyPhaseId: 'phase-3',
+    listenScript: moduleListenScripts.m6,
     labs: ['lab-capstone-a', 'lab-capstone-b'],
     outcomes: [
       'Resolve identity by alias; resolve lifecycle state by name on the profile.',
@@ -395,6 +399,7 @@ identityId eq "abc-123"`,
     goal: 'Automate access without bypassing governance',
     trackId: 'track-1',
     fluencyPhaseId: 'phase-3',
+    listenScript: moduleListenScripts.m7,
     labs: ['lab-capstone-c'],
     outcomes: [
       'Submit access requests for roles/access profiles/entitlements with approvals intact.',
