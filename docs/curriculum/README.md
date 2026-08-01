@@ -8,6 +8,8 @@ Enterprise ISC engineering across REST, SDKs, CLI, transforms, rules, workflows,
 
 **Estimated time:** 8–12 weeks part-time.
 
+Each `m0`–`m20` markdown file is readable offline: failure modes, enterprise checklists, checkpoints, core tables/lists, and Mermaid diagrams. The web app adds XP, unlocks, interactive diagrams, micro-checks, and labs — open `#/module/mN` from any module’s **Interactive learning** section.
+
 ## Tracks
 
 ### Track 0 — Foundations

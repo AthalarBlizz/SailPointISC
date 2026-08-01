@@ -22,17 +22,69 @@
 - End-user interactive OAuth for UI apps (different product surface)
 - Connector-internal auth to the target SaaS (connector SDK concern)
 
+## Core content
+
+Prefer PAT for scripts and automations. Token endpoint is tenant OAuth; modern client IDs are UUID-with-dashes. Rate limit order of magnitude: ~100 requests per access_token per 10 seconds.
+
+### Auth and error classes
+
+```mermaid
+sequenceDiagram
+  participant Script
+  participant OAuth as OAuthToken
+  participant API as ISC_API
+  Script->>OAuth: POST client_credentials
+  OAuth-->>Script: access_token ~12min
+  Script->>API: Authorization Bearer
+  alt 401
+    API-->>Script: invalid or expired token
+  else 403
+    API-->>Script: scope or user level
+  else 429
+    API-->>Script: rate limited backoff
+  else 2xx
+    API-->>Script: payload
+  end
+```
+
+### Scope posture by integration
+
+| Integration | Scope posture |
+| --- | --- |
+| Read-only reporting | Specific :read scopes |
+| ITDR disable | Identity lifecycle + read; document blast radius |
+| Access request bot | Request create + status; not admin bypass |
+| Migration scanner | Read-heavy; no mutate in dry-run |
+
+### Error classes
+
+- 401 → missing/expired/invalid token (or wrong base URL).
+- 403 → token OK but authorization failed: missing scope, insufficient user level, or endpoint needs user context client-credentials cannot supply.
+- 429 → back off; reuse one token per run; batch and paginate thoughtfully.
+
+> OS keychain / vault only. Never commit .env, never paste Client Secret into chat or tickets.
+
 ## Failure modes
 
-
+- New token on every request → 429 and latency.
+- Legacy undashed client IDs that silently fail auth.
+- Assuming 403 means “bad secret” and rotating the wrong credential.
+- Shared PAT across unrelated apps — audit and blast-radius nightmare.
 
 ## Enterprise checklist
 
-
+- [ ] Named PAT per integration with owner + rotation date
+- [ ] Scopes listed in the runbook / ADR
+- [ ] Keyring locally; vault/KMS in prod
+- [ ] Revoke on service account offboarding
+- [ ] Log correlation / request IDs without logging secrets
 
 ## Checkpoints
 
-
+1. **Walk through obtaining and using a bearer token.**
+   - POST /oauth/token with grant_type=client_credentials and PAT client_id/secret. Use access_token as Authorization: Bearer until ~12 min expiry; reuse within a run; SDKs refresh automatically.
+2. **Valid token, 403 on access-request create — what do you check first?**
+   - Scopes on the PAT, user level of the PAT owner, and whether the endpoint requires a user context that client-credentials cannot provide.
 
 ## Interactive learning
 

@@ -33,8 +33,9 @@ export const localStorageAdapter: StorageAdapter = {
 
 const STORAGE_KEY_V1 = 'isc-curriculum-progress-v1'
 const STORAGE_KEY_V2 = 'isc-curriculum-progress-v2'
-/** Bumped when client progress shape or click-critical behavior changes. */
-const STORAGE_KEY = 'isc-curriculum-progress-v3'
+const STORAGE_KEY_V3 = 'isc-curriculum-progress-v3'
+/** Bumped for XP / streaks / badges / unlocks / section checks. */
+const STORAGE_KEY = 'isc-curriculum-progress-v4'
 
 export type LearningPathId = 'fluency' | 'implementation'
 export type DrillRating = 'knew' | 'needs-work'
@@ -45,10 +46,21 @@ export type PathProgress = {
   completedTracker: string[]
   lastRoute: string
   drillRatings: Record<string, DrillRating>
+  /** UTC date (YYYY-MM-DD) when each drill was last rated — spaced revisit. */
+  drillRatedAt: Record<string, string>
   labChecks: Record<string, string[]>
   labNotes: Record<string, string>
   versioningCorrect: string[]
   filterCorrect: string[]
+  xp: number
+  streakDays: number
+  lastActiveDate: string
+  sectionChecks: string[]
+  earnedBadges: string[]
+  clearedUnits: string[]
+  decisionCorrect: string[]
+  /** Idempotency keys for XP awards */
+  xpAwardKeys: string[]
 }
 
 export type DualProgressState = {
@@ -63,10 +75,19 @@ export const defaultPathProgress = (): PathProgress => ({
   completedTracker: [],
   lastRoute: '/',
   drillRatings: {},
+  drillRatedAt: {},
   labChecks: {},
   labNotes: {},
   versioningCorrect: [],
   filterCorrect: [],
+  xp: 0,
+  streakDays: 0,
+  lastActiveDate: '',
+  sectionChecks: [],
+  earnedBadges: [],
+  clearedUnits: [],
+  decisionCorrect: [],
+  xpAwardKeys: [],
 })
 
 export const defaultDualProgress = (): DualProgressState => ({
@@ -108,12 +129,16 @@ function migrateV1(raw: string): DualProgressState | null {
   }
 }
 
+function normalizePath(partial: Partial<PathProgress> | undefined): PathProgress {
+  return { ...defaultPathProgress(), ...(partial ?? {}) }
+}
+
 function normalizeDual(parsed: DualProgressState): DualProgressState {
   return {
     ...defaultDualProgress(),
     ...parsed,
-    fluency: { ...defaultPathProgress(), ...parsed.fluency },
-    implementation: { ...defaultPathProgress(), ...parsed.implementation },
+    fluency: normalizePath(parsed.fluency),
+    implementation: normalizePath(parsed.implementation),
   }
 }
 
@@ -128,12 +153,21 @@ export function loadDualProgress(
       /* fall through */
     }
   }
+  const v3 = adapter.getItem(STORAGE_KEY_V3)
+  if (v3) {
+    try {
+      const migrated = normalizeDual(JSON.parse(v3) as DualProgressState)
+      saveDualProgress(migrated, adapter)
+      adapter.removeItem(STORAGE_KEY_V3)
+      return migrated
+    } catch {
+      /* fall through */
+    }
+  }
   const v2 = adapter.getItem(STORAGE_KEY_V2)
   if (v2) {
     try {
       const migrated = normalizeDual(JSON.parse(v2) as DualProgressState)
-      // Force path chooser once after the click-freeze fix so users aren't stuck
-      // behind a half-rendered shell from a prior bad session.
       migrated.pathChosen = false
       saveDualProgress(migrated, adapter)
       adapter.removeItem(STORAGE_KEY_V2)
@@ -168,6 +202,7 @@ export function resetDualProgress(
   saveDualProgress(fresh, adapter)
   adapter.removeItem(STORAGE_KEY_V1)
   adapter.removeItem(STORAGE_KEY_V2)
+  adapter.removeItem(STORAGE_KEY_V3)
   return fresh
 }
 
@@ -185,7 +220,7 @@ export function resetActivePathProgress(
 
 /** Portable backup envelope — safe to save to Files / iCloud / Drive. */
 export const PROGRESS_EXPORT_FORMAT = 'isc-curriculum-progress'
-export const PROGRESS_EXPORT_VERSION = 1
+export const PROGRESS_EXPORT_VERSION = 2
 
 export type ProgressExportEnvelope = {
   format: typeof PROGRESS_EXPORT_FORMAT
@@ -228,12 +263,10 @@ export function parseProgressImport(raw: string): DualProgressState | string {
 
   const obj = parsed as Record<string, unknown>
 
-  // Envelope from this app
   if (obj.format === PROGRESS_EXPORT_FORMAT && obj.data && typeof obj.data === 'object') {
     return normalizeDual(obj.data as DualProgressState)
   }
 
-  // Raw dual progress (or older backups without envelope)
   if (
     obj.fluency &&
     typeof obj.fluency === 'object' &&
@@ -243,7 +276,6 @@ export function parseProgressImport(raw: string): DualProgressState | string {
     return normalizeDual(obj as unknown as DualProgressState)
   }
 
-  // Legacy single-path v1 shape
   if (Array.isArray(obj.completedPhases) || Array.isArray(obj.completedTracker)) {
     const migrated = migrateV1(JSON.stringify(obj))
     if (migrated) return migrated
@@ -273,7 +305,6 @@ export async function shareOrDownloadProgress(
       return 'shared'
     }
   } catch (err) {
-    // User cancelled share sheet — don't fall through to a duplicate download.
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw err
     }
@@ -291,3 +322,5 @@ export async function shareOrDownloadProgress(
   URL.revokeObjectURL(url)
   return 'downloaded'
 }
+
+export { STORAGE_KEY }

@@ -1,4 +1,5 @@
 import type { Module } from '../types'
+import { DIAGRAM_REF_ARCH } from '../diagrams'
 
 export const modules: Module[] = [
   {
@@ -30,6 +31,17 @@ export const modules: Module[] = [
         title: 'Reference patterns',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Why this matters: without a shared picture, teams reinvent point-to-point scripts — ITDR calling Search, HR PATCHing the same attributes a connector owns, and peer clone bypassing approvals.',
+          },
+          {
+            type: 'diagram',
+            title: 'Reference architecture sketch',
+            mermaid: DIAGRAM_REF_ARCH,
+            caption:
+              'ITDR/SIEM → lifecycle API; HR → aggregation; ISC → target apps; peer provisioner → access requests; compliance → certifications/search.',
+          },
+          {
             type: 'table',
             headers: ['Pattern', 'Skeleton'],
             rows: [
@@ -46,6 +58,20 @@ export const modules: Module[] = [
               'Idempotency: key on identity id + desired state; safe retries.',
               'Async provisioning: HTTP success ≠ all accounts disabled yet — design verification windows.',
             ],
+          },
+          {
+            type: 'quiz',
+            id: 'm17:patterns:1',
+            prompt: 'Peer provisioner should grant a peer’s roles by…',
+            choices: [
+              { id: 'a', label: 'Direct entitlement assignment APIs to skip approvals' },
+              { id: 'b', label: 'Submitting access requests so governance still applies' },
+              { id: 'c', label: 'Only aggregating HR and hoping transforms copy access' },
+              { id: 'd', label: 'Hardcoding role GUIDs from sandbox into prod' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Peer clone is an access-request pattern — preserve approvals, SoD, and audit. Do not bypass governance with raw grants.',
           },
         ],
       },

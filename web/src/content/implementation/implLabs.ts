@@ -58,6 +58,14 @@ export const implLabs: Lab[] = [
         prompt:
           'HR email must be lowercased into the identity attribute on aggregation. No external calls.',
         answer: 'Transform',
+        choices: [
+          'Transform',
+          'Cloud rule',
+          'Workflow',
+          'SaaS Connectivity connector',
+          'Connector customizer',
+          'External API script',
+        ],
         rationale:
           'Deterministic string normalize is core transform vocabulary (lower + accountAttribute). Rule/customizer would be overkill.',
       },
@@ -66,6 +74,14 @@ export const implLabs: Lab[] = [
         prompt:
           'When lifecycle becomes Terminated, post to Slack and open a ServiceNow ticket with identity details.',
         answer: 'Workflow',
+        choices: [
+          'Transform',
+          'Cloud rule',
+          'Workflow',
+          'SaaS Connectivity connector',
+          'Connector customizer',
+          'External API script',
+        ],
         rationale:
           'Event-driven side effects with HTTP actions fit workflows. Keep HTTP paths on /service/vN if calling ISC again.',
       },
@@ -74,6 +90,14 @@ export const implLabs: Lab[] = [
         prompt:
           'New SaaS HR system must aggregate accounts/entitlements into ISC as a Source; no OOTB connector exists; API is internet-reachable.',
         answer: 'SaaS Connectivity connector',
+        choices: [
+          'Transform',
+          'Workflow',
+          'SaaS Connectivity connector',
+          'Connector customizer',
+          'External API script',
+          'UI-only config',
+        ],
         rationale:
           'Need source semantics (aggregate/provision). Use @sailpoint/connector-sdk + spcx — not a nightly script pretending to be a source.',
       },
@@ -82,6 +106,14 @@ export const implLabs: Lab[] = [
         prompt:
           'OOTB SaaS connector works, but create-account payloads need one field renamed and service accounts stripped from list.',
         answer: 'Connector customizer',
+        choices: [
+          'Transform',
+          'Cloud rule',
+          'Workflow',
+          'Rewrite as SaaS Connectivity connector',
+          'Connector customizer',
+          'External API script',
+        ],
         rationale:
           'Before/after TypeScript hooks mutate connector I/O without rewriting the whole connector or dropping to BeanShell.',
       },

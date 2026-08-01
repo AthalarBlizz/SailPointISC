@@ -22,17 +22,42 @@
 - Emergency revoke for compromised user (lifecycle/disable — M6)
 - SoD policy authoring in BeanShell (different admin surface)
 
+## Core content
+
+Prefer /access-requests/v1 for create/status patterns. Some configuration endpoints migrate to v2 — check the migration table. Approvals still apply; automation is a requester, not a backdoor.
+
+### Peer clone pattern
+
+- Collect peer roles/entitlements → dry-run for manager → submit access requests.
+- Never copy accounts by raw entitlement assignment APIs unless policy explicitly allows.
+
+### Certifications (integration literacy)
+
+- Campaigns review and revoke access on a schedule — integrations usually report, kick off, or sync decisions.
+- Do not confuse certification revoke with ITDR emergency disable.
+- Read scopes carefully; campaign APIs are easy to over-privilege.
+
 ## Failure modes
 
-
+- Direct entitlement assignment to skip approvals.
+- Submitting requests with sandbox role GUIDs in prod.
+- Ignoring pending approval SLAs in “automation success” metrics.
+- Leaving access-request-config calls on legacy yearly paths.
 
 ## Enterprise checklist
 
-
+- [ ] Request types and item types documented
+- [ ] Dry-run artifact for manager/audit
+- [ ] Status polling / webhook strategy
+- [ ] Cancel/close error handling
+- [ ] Certification vs request vs lifecycle decision tree
 
 ## Checkpoints
 
-
+1. **Why must peer clone submit access requests?**
+   - To preserve approvals, SoD, and audit. Direct grants bypass governance the business relies on.
+2. **Name one migration foot-gun specific to access APIs.**
+   - Some access-request-config / entitlements paths map to v2, not v1 — verify in the official migration table.
 
 ## Interactive learning
 

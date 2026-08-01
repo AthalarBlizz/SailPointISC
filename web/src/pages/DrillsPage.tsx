@@ -7,43 +7,83 @@ import {
   allImplementationDrills,
 } from '../content'
 import { useProgress } from '../hooks/useProgress'
+import { isPhaseUnlocked, isModuleUnlocked, utcDateString } from '../lib/gamification'
+
+const SPACED_DAYS = 3
+
+function daysSince(dateStr: string | undefined, today: string): number {
+  if (!dateStr) return 999
+  const ms = Date.parse(`${today}T00:00:00Z`) - Date.parse(`${dateStr}T00:00:00Z`)
+  return Math.round(ms / 86_400_000)
+}
 
 export function DrillsPage() {
   const [params, setParams] = useSearchParams()
   const filter = params.get('phase') ?? params.get('module') ?? 'all'
   const { progress, setDrillRating, activePath } = useProgress()
+  const today = utcDateString()
 
   const drills = useMemo(() => {
-    if (activePath === 'fluency') {
-      const all = allDrills()
-      if (filter === 'weak') {
-        return all.filter((d) => progress.drillRatings[d.id] === 'needs-work')
-      }
-      if (filter !== 'all') {
-        return all.filter((d) => d.phaseId === filter)
-      }
-      return all.map((d) => ({
-        ...d,
-        scopeLabel: d.phaseTitle,
-      }))
+    type Row = {
+      id: string
+      prompt: string
+      answer: string
+      phaseId: string
+      phaseTitle: string
+      scopeLabel?: string
+      moduleId?: string
     }
-    const all = allImplementationDrills().map((d) => {
-      const mod = implementationModules.find((m) => m.id === d.moduleId)
-      return {
-        ...d,
-        phaseId: d.moduleId,
-        phaseTitle: mod ? `M${mod.number}` : d.moduleId,
-        scopeLabel: mod ? `M${mod.number} ${mod.shortTitle}` : d.moduleId,
-      }
-    })
+
+    let rows: Row[] = []
+    if (activePath === 'fluency') {
+      rows = allDrills()
+        .filter((d) => isPhaseUnlocked(d.phaseId, progress))
+        .map((d) => ({ ...d, scopeLabel: d.phaseTitle }))
+    } else {
+      rows = allImplementationDrills()
+        .filter((d) => isModuleUnlocked(d.moduleId, progress))
+        .map((d) => {
+          const mod = implementationModules.find((m) => m.id === d.moduleId)
+          return {
+            ...d,
+            phaseId: d.moduleId,
+            phaseTitle: mod ? `M${mod.number}` : d.moduleId,
+            scopeLabel: mod ? `M${mod.number} ${mod.shortTitle}` : d.moduleId,
+          }
+        })
+    }
+
     if (filter === 'weak') {
-      return all.filter((d) => progress.drillRatings[d.id] === 'needs-work')
+      return rows.filter((d) => progress.drillRatings[d.id] === 'needs-work')
+    }
+    if (filter === 'revisit') {
+      return rows.filter((d) => {
+        const rating = progress.drillRatings[d.id]
+        if (rating === 'needs-work') return true
+        if (rating === 'knew') {
+          return daysSince(progress.drillRatedAt[d.id], today) >= SPACED_DAYS
+        }
+        return false
+      })
     }
     if (filter !== 'all') {
-      return all.filter((d) => d.moduleId === filter)
+      return rows.filter((d) =>
+        activePath === 'fluency' ? d.phaseId === filter : d.moduleId === filter,
+      )
     }
-    return all
-  }, [activePath, filter, progress.drillRatings])
+
+    // Spaced priority: needs-work and stale "knew" first, then unrated, then fresh knew
+    return [...rows].sort((a, b) => {
+      const score = (id: string) => {
+        const r = progress.drillRatings[id]
+        if (r === 'needs-work') return 0
+        if (r === 'knew' && daysSince(progress.drillRatedAt[id], today) >= SPACED_DAYS) return 1
+        if (!r) return 2
+        return 3
+      }
+      return score(a.id) - score(b.id)
+    })
+  }, [activePath, filter, progress, today])
 
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
@@ -57,11 +97,15 @@ export function DrillsPage() {
 
   const scopeOptions =
     activePath === 'fluency'
-      ? phases.map((p) => ({ value: p.id, label: `Phase ${p.number}: ${p.shortTitle}` }))
-      : implementationModules.map((m) => ({
-          value: m.id,
-          label: `M${m.number}: ${m.shortTitle}`,
-        }))
+      ? phases
+          .filter((p) => isPhaseUnlocked(p.id, progress))
+          .map((p) => ({ value: p.id, label: `Phase ${p.number}: ${p.shortTitle}` }))
+      : implementationModules
+          .filter((m) => isModuleUnlocked(m.id, progress))
+          .map((m) => ({
+            value: m.id,
+            label: `M${m.number}: ${m.shortTitle}`,
+          }))
 
   return (
     <div>
@@ -71,8 +115,8 @@ export function DrillsPage() {
         </span>
         <h1>Drills</h1>
         <p className="muted">
-          Reveal the model answer, then rate yourself. “Needs work” builds your weak queue for
-          this path.
+          Reveal the model answer, then rate yourself. Needs-work and items you marked Knew it
+          over {SPACED_DAYS} days ago surface first for spaced revisit.
         </p>
         <div className="actions" style={{ marginTop: '0.75rem' }}>
           <select
@@ -82,6 +126,7 @@ export function DrillsPage() {
             onChange={(e) => {
               const v = e.target.value
               if (v === 'all') setParams({})
+              else if (v === 'weak' || v === 'revisit') setParams({ phase: v })
               else if (activePath === 'fluency') setParams({ phase: v })
               else setParams({ module: v })
               setIndex(0)
@@ -89,7 +134,8 @@ export function DrillsPage() {
             }}
             aria-label="Filter drills"
           >
-            <option value="all">All</option>
+            <option value="all">All (spaced order)</option>
+            <option value="revisit">Spaced revisit</option>
             <option value="weak">Needs work only</option>
             {scopeOptions.map((o) => (
               <option key={o.value} value={o.value}>
@@ -105,7 +151,9 @@ export function DrillsPage() {
           <p>
             {filter === 'weak'
               ? 'No weak items yet — practice a few drills and mark some as Needs work.'
-              : 'No drills in this filter.'}
+              : filter === 'revisit'
+                ? 'Nothing due for revisit — keep learning new units.'
+                : 'No drills unlocked yet — clear earlier units first.'}
           </p>
           <Link className="btn btn-primary" to="/drills">
             Show all

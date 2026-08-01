@@ -9,6 +9,13 @@ import {
 } from '../content'
 import { DataTransferPanel } from '../components/DataTransferPanel'
 import { useProgress } from '../hooks/useProgress'
+import {
+  activityPercent,
+  isPhaseUnlocked,
+  isModuleUnlocked,
+  nextUnlockHint,
+  xpProgressToNext,
+} from '../lib/gamification'
 
 export function HomePage() {
   const {
@@ -29,8 +36,8 @@ export function HomePage() {
           <span className="eyebrow">Currency {curriculumMeta.currencyDate}</span>
           <h1>Choose your learning path</h1>
           <p className="lede">
-            Two complementary paths. Swap anytime from the top bar — progress is saved separately
-            for each.
+            Two complementary paths with XP, ranks, streaks, and unlocks. Swap anytime — progress
+            is saved separately for each.
           </p>
         </header>
         <div className="path-picker">
@@ -39,7 +46,6 @@ export function HomePage() {
             className="card path-card"
             onClick={() => {
               choosePath('fluency')
-              // Hash navigation ensures UI updates even if a prior bundle was sticky.
               window.location.hash = '#/'
             }}
           >
@@ -93,11 +99,12 @@ export function HomePage() {
   const trackerDone = progress.completedTracker.filter((id) =>
     pathTrackers.some((t) => t.id === id),
   ).length
-  const pct =
-    pathTrackers.length === 0 ? 0 : Math.round((trackerDone / pathTrackers.length) * 100)
+  const pct = activityPercent(activePath, progress)
+  const xpInfo = xpProgressToNext(progress.xp, activePath)
+  const nextHint = nextUnlockHint(activePath, progress)
+  const clearedCount = progress.clearedUnits.length
 
   if (activePath === 'fluency') {
-    const phaseDone = progress.completedItems.length
     const continueTo = getContinueRoute('/phase/phase-0')
 
     return (
@@ -109,8 +116,16 @@ export function HomePage() {
         pct={pct}
         trackerDone={trackerDone}
         trackerTotal={pathTrackers.length}
-        itemLabel={`${phaseDone} of ${phases.length} phases marked complete`}
-        otherPathProgress={dual.implementation.completedItems.length}
+        itemLabel={`${clearedCount} of ${phases.length} phases cleared`}
+        xpLabel={`${xpInfo.current.label} · ${progress.xp} XP · streak ${progress.streakDays}d`}
+        nextHint={
+          nextHint
+            ? `Up next: Phase ${(nextHint.unit as (typeof phases)[0]).number} — ${nextHint.unit.shortTitle}`
+            : progress.clearedUnits.length >= phases.length
+              ? 'All phases cleared — keep drilling and earn badges.'
+              : null
+        }
+        otherPathProgress={dual.implementation.clearedUnits.length}
         onResetPath={() => {
           if (confirm('Reset Fluency path progress on this device?')) resetActivePath()
         }}
@@ -124,13 +139,28 @@ export function HomePage() {
           <h2>Learning path</h2>
           <div className="card-grid">
             {phases.map((p) => {
+              const unlocked = isPhaseUnlocked(p.id, progress)
+              const cleared = progress.clearedUnits.includes(p.id)
               const done = progress.completedItems.includes(p.id)
+              if (!unlocked) {
+                return (
+                  <div key={p.id} className="card card-locked">
+                    <div className="meta-row">
+                      <span className="chip">Phase {p.number}</span>
+                      <span className="chip">Locked</span>
+                    </div>
+                    <h3 style={{ marginTop: '0.65rem' }}>{p.title}</h3>
+                    <p>{p.goal}</p>
+                  </div>
+                )
+              }
               return (
                 <Link key={p.id} to={`/phase/${p.id}`} className="card card-link">
                   <div className="meta-row">
                     <span className="chip">Phase {p.number}</span>
                     <span className="chip">{p.estTime}</span>
-                    {done ? <span className="chip done">Complete</span> : null}
+                    {cleared ? <span className="chip done">Cleared</span> : null}
+                    {!cleared && done ? <span className="chip done">Complete</span> : null}
                   </div>
                   <h3 style={{ marginTop: '0.65rem' }}>{p.title}</h3>
                   <p>{p.goal}</p>
@@ -144,7 +174,6 @@ export function HomePage() {
     )
   }
 
-  const modDone = progress.completedItems.length
   const continueTo = getContinueRoute('/module/m0')
 
   return (
@@ -156,8 +185,16 @@ export function HomePage() {
       pct={pct}
       trackerDone={trackerDone}
       trackerTotal={pathTrackers.length}
-      itemLabel={`${modDone} of ${implementationModules.length} modules marked complete`}
-      otherPathProgress={dual.fluency.completedItems.length}
+      itemLabel={`${clearedCount} of ${implementationModules.length} modules cleared`}
+      xpLabel={`${xpInfo.current.label} · ${progress.xp} XP · streak ${progress.streakDays}d`}
+      nextHint={
+        nextHint
+          ? `Up next: M${(nextHint.unit as (typeof implementationModules)[0]).number} — ${nextHint.unit.shortTitle}`
+          : progress.clearedUnits.length >= implementationModules.length
+            ? 'All modules cleared — ship capstones and chase badges.'
+            : null
+      }
+      otherPathProgress={dual.fluency.clearedUnits.length}
       onResetPath={() => {
         if (confirm('Reset Implementation path progress on this device?')) resetActivePath()
       }}
@@ -175,8 +212,9 @@ export function HomePage() {
               .map((id) => implementationModules.find((m) => m.id === id))
               .filter(Boolean)
             const doneCount = mods.filter((m) =>
-              progress.completedItems.includes(m!.id),
+              progress.clearedUnits.includes(m!.id),
             ).length
+            const firstOpen = t.moduleIds.find((id) => isModuleUnlocked(id, progress))
             return (
               <div key={t.id} className="card">
                 <div className="meta-row">
@@ -188,9 +226,13 @@ export function HomePage() {
                 <h3 style={{ marginTop: '0.65rem' }}>{t.title}</h3>
                 <p>{t.description}</p>
                 <div className="actions" style={{ marginTop: '0.75rem' }}>
-                  <Link className="btn btn-ghost" to={`/module/${t.moduleIds[0]}`}>
-                    Open track
-                  </Link>
+                  {firstOpen ? (
+                    <Link className="btn btn-ghost" to={`/module/${firstOpen}`}>
+                      Open track
+                    </Link>
+                  ) : (
+                    <span className="muted">Locked — clear prior track</span>
+                  )}
                 </div>
               </div>
             )
@@ -213,15 +255,15 @@ function SharedPractice() {
         </Link>
         <Link to="/drills" className="card card-link">
           <h3>Drills</h3>
-          <p>Self-rated checkpoints for the active path.</p>
+          <p>Self-rated checkpoints with spaced revisit for this path.</p>
+        </Link>
+        <Link to="/achievements" className="card card-link">
+          <h3>Achievements</h3>
+          <p>XP, ranks, streaks, and badges.</p>
         </Link>
         <Link to="/snapshot" className="card card-link">
           <h3>July 2026 snapshot</h3>
           <p>Shared versioning cheat sheet for both paths.</p>
-        </Link>
-        <Link to="/glossary" className="card card-link">
-          <h3>Glossary</h3>
-          <p>Shared vocabulary for conversations and reviews.</p>
         </Link>
       </div>
     </section>
@@ -237,6 +279,8 @@ function HomeShell({
   trackerDone,
   trackerTotal,
   itemLabel,
+  xpLabel,
+  nextHint,
   otherPathProgress,
   onResetPath,
   onResetAll,
@@ -252,6 +296,8 @@ function HomeShell({
   trackerDone: number
   trackerTotal: number
   itemLabel: string
+  xpLabel: string
+  nextHint: string | null
   otherPathProgress: number
   onResetPath: () => void
   onResetAll: () => void
@@ -275,8 +321,8 @@ function HomeShell({
           <button type="button" className="btn btn-ghost" onClick={onSwitch}>
             {switchLabel}
           </button>
-          <Link className="btn btn-ghost" to="/snapshot">
-            Snapshot
+          <Link className="btn btn-ghost" to="/achievements">
+            Achievements
           </Link>
         </div>
       </header>
@@ -288,11 +334,17 @@ function HomeShell({
           </div>
           <div>
             <h2 style={{ marginTop: 0 }}>Your progress (this path)</h2>
+            <p className="muted">{xpLabel}</p>
             <p className="muted">
-              {trackerDone} of {trackerTotal} tracker items · {itemLabel}
+              {itemLabel} · {trackerDone} of {trackerTotal} tracker items
             </p>
+            {nextHint ? (
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                {nextHint}
+              </p>
+            ) : null}
             <p className="muted" style={{ marginTop: '0.35rem' }}>
-              Other path: {otherPathProgress} items completed (preserved when you switch).
+              Other path: {otherPathProgress} units cleared (preserved when you switch).
             </p>
             <div className="actions" style={{ marginTop: '0.85rem' }}>
               <Link className="btn btn-ghost" to="/tracker">

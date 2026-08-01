@@ -16,12 +16,15 @@ export function LabPage() {
     setLabNotes,
     markVersioningCorrect,
     markFilterCorrect,
+    markDecisionCorrect,
   } = useProgress()
 
   const [vIndex, setVIndex] = useState(0)
   const [showModern, setShowModern] = useState(false)
   const [guess, setGuess] = useState('')
   const [filterFeedback, setFilterFeedback] = useState<string | null>(null)
+  const [decisionPicks, setDecisionPicks] = useState<Record<string, string>>({})
+  const [decisionChecked, setDecisionChecked] = useState<Record<string, boolean>>({})
 
   const versioningItem = useMemo(() => {
     if (!lab || lab.kind !== 'versioning') return null
@@ -291,20 +294,81 @@ export function LabPage() {
           <h1>{lab.title}</h1>
           <p className="muted">{lab.description}</p>
         </header>
-        {lab.scenarios.map((s) => (
-          <section key={s.id} className="section">
-            <div className="card stack">
-              <p className="drill-prompt">{s.prompt}</p>
-              <details>
-                <summary>Reveal answer</summary>
-                <p>
-                  <strong>{s.answer}</strong>
-                </p>
-                <p className="muted">{s.rationale}</p>
-              </details>
-            </div>
-          </section>
-        ))}
+        {lab.scenarios.map((s) => {
+          const mastered = progress.decisionCorrect.includes(s.id)
+          const picked = decisionPicks[s.id]
+          const checked = decisionChecked[s.id] || mastered
+          const correct = picked === s.answer || mastered
+          return (
+            <section key={s.id} className="section">
+              <div className="card stack">
+                <div className="meta-row">
+                  {mastered ? <span className="chip done">Mastered</span> : null}
+                </div>
+                <p className="drill-prompt">{s.prompt}</p>
+                <div className="quiz-choices">
+                  {s.choices.map((c) => {
+                    let cls = 'quiz-choice'
+                    if (checked && c === s.answer) cls += ' correct'
+                    if (checked && picked === c && c !== s.answer) cls += ' wrong'
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        className={cls}
+                        disabled={mastered || checked}
+                        onClick={() =>
+                          setDecisionPicks((p) => ({ ...p, [s.id]: c }))
+                        }
+                        aria-pressed={picked === c}
+                      >
+                        {c}
+                      </button>
+                    )
+                  })}
+                </div>
+                {!mastered && !checked ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!picked}
+                    onClick={() => {
+                      setDecisionChecked((d) => ({ ...d, [s.id]: true }))
+                      if (picked === s.answer) markDecisionCorrect(s.id)
+                    }}
+                  >
+                    Check
+                  </button>
+                ) : null}
+                {checked ? (
+                  <div className={`quiz-feedback ${correct ? 'ok' : 'bad'}`}>
+                    <strong>{correct ? 'Correct.' : 'Preferred answer:'}</strong>{' '}
+                    {!correct ? <em>{s.answer}. </em> : null}
+                    {s.rationale}
+                    {!mastered && !correct ? (
+                      <div className="actions" style={{ marginTop: '0.5rem' }}>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => {
+                            setDecisionChecked((d) => ({ ...d, [s.id]: false }))
+                            setDecisionPicks((p) => {
+                              const next = { ...p }
+                              delete next[s.id]
+                              return next
+                            })
+                          }}
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )
+        })}
         <section className="section">
           <h2>Your notes</h2>
           <textarea

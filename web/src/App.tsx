@@ -10,6 +10,7 @@ import { DrillsPage } from './pages/DrillsPage'
 import { LabsIndexPage } from './pages/LabsIndexPage'
 import { LabPage } from './pages/LabPage'
 import { ModulePage } from './pages/ModulePage'
+import { AchievementsPage } from './pages/AchievementsPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="snapshot" element={<SnapshotPage />} />
             <Route path="glossary" element={<GlossaryPage />} />
             <Route path="tracker" element={<TrackerPage />} />
+            <Route path="achievements" element={<AchievementsPage />} />
             <Route path="drills" element={<DrillsPage />} />
             <Route path="labs" element={<LabsIndexPage />} />
             <Route path="labs/:labId" element={<LabPage />} />

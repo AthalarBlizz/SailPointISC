@@ -1,4 +1,5 @@
 import type { Module } from '../types'
+import { DIAGRAM_SEARCH_VS_LIST, DIAGRAM_LEAVER } from '../diagrams'
 
 export const modules: Module[] = [
   {
@@ -44,6 +45,24 @@ export const modules: Module[] = [
             tone: 'tip',
             title: 'Rule of thumb',
             text: 'Script-on-its-own → SDK. Other-system-calls-ISC → REST integration spec.',
+          },
+          {
+            type: 'paragraph',
+            text: 'Why this matters: the wrong deliverable wastes weeks — handing ServiceNow a Python SDK forces their team to host a runtime they do not own, while giving yourself only a Postman collection skips retries, pagination, and typed clients you will need in production.',
+          },
+          {
+            type: 'quiz',
+            id: 'm4:decision:1',
+            prompt: 'ITDR runs in ServiceNow and must call ISC — what do you hand them?',
+            choices: [
+              { id: 'a', label: 'The sailpoint Python package and a venv guide' },
+              { id: 'b', label: 'A REST call sheet: method, path, headers, body, status, verify GET' },
+              { id: 'c', label: 'Only a Personal Access Token with no paths' },
+              { id: 'd', label: 'A SaaS Connectivity connector project' },
+            ],
+            correctId: 'b',
+            explanation:
+              'External platforms that already speak HTTP need a language-agnostic REST contract. SDKs belong in runtimes you own.',
           },
         ],
       },
@@ -160,6 +179,17 @@ identityId eq "abc-123"`,
         title: 'Search vs list; PATCH vs bulk',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Why this matters: picking Search for an ITDR disable can hit index lag and miss the identity you must act on now; picking list+offset for a million-row analytics dump burns rate budget and time.',
+          },
+          {
+            type: 'diagram',
+            title: 'Search vs list — choose by workload',
+            mermaid: DIAGRAM_SEARCH_VS_LIST,
+            caption:
+              'ITDR and simple alias lookups prefer list filters (near real-time). Wide analytics prefer Search + searchAfter (accept index lag).',
+          },
+          {
             type: 'list',
             items: [
               'List + filters: resource collections, simpler predicates, pagination via limit/offset.',
@@ -182,6 +212,20 @@ identityId eq "abc-123"`,
   filters: 'alias eq "Jennifer.Thomas"',
   limit: 1,
 });`,
+          },
+          {
+            type: 'quiz',
+            id: 'm5:search-patch:1',
+            prompt: 'Emergency disable must resolve Jennifer.Thomas by alias — which query path?',
+            choices: [
+              { id: 'a', label: 'Search DSL with searchAfter pagination' },
+              { id: 'b', label: 'List identities with filters=alias eq "Jennifer.Thomas"' },
+              { id: 'c', label: 'Bulk PATCH every identity matching a name prefix' },
+              { id: 'd', label: 'Certification campaign search export' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Simple authoritative lookups belong on list + filters (near real-time). Save Search for wide reporting where index lag is acceptable.',
           },
         ],
       },
@@ -248,6 +292,17 @@ identityId eq "abc-123"`,
         title: 'Resolve then mutate',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Why this matters: hardcoding a Terminated GUID works once in sandbox and fails silently in prod; skipping the verify GET closes the ticket while provisioning may still be in flight.',
+          },
+          {
+            type: 'diagram',
+            title: 'Emergency disable / leaver sequence',
+            mermaid: DIAGRAM_LEAVER,
+            caption:
+              'Resolve identity → resolve lifecycle state by name → set state → GET before/after. Never hardcode tenant GUIDs.',
+          },
+          {
             type: 'code',
             language: 'python',
             code: `# Shape for SDK 2.x — method suffixes mirror /identities/v1
@@ -262,6 +317,20 @@ identityId eq "abc-123"`,
             tone: 'tip',
             title: 'Say this',
             text: 'For emergency disable I set lifecycle to Terminated (resolved by name) so ISC provisions disables downstream.',
+          },
+          {
+            type: 'quiz',
+            id: 'm6:resolve:1',
+            prompt: 'Correct order for an emergency leaver by lifecycle?',
+            choices: [
+              { id: 'a', label: 'POST set-lifecycle-state with a hardcoded Terminated GUID, skip GET' },
+              { id: 'b', label: 'GET identity by alias → resolve Terminated by name → set state → GET verify' },
+              { id: 'c', label: 'Disable one AD account, then submit an access request revoke' },
+              { id: 'd', label: 'Wait for the next HR aggregation file' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Name-resolve identity and lifecycle state, mutate, then verify with GET. GUIDs are tenant-specific; aggregation is too slow for ITDR.',
           },
         ],
       },

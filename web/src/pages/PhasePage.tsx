@@ -1,12 +1,25 @@
 import { Link, useParams } from 'react-router-dom'
+import { useEffect } from 'react'
 import { getPhase, phases, getLab, getModule } from '../content'
 import { ContentBlocks } from '../components/ContentBlocks'
 import { useProgress } from '../hooks/useProgress'
+import {
+  isPhaseUnlocked,
+  canClearUnit,
+  quizIdsInSections,
+} from '../lib/gamification'
 
 export function PhasePage() {
   const { phaseId } = useParams()
   const phase = getPhase(phaseId ?? '')
-  const { progress, toggleItemComplete, setActivePath } = useProgress()
+  const { progress, toggleItemComplete, setActivePath, tryClearUnit } = useProgress()
+
+  useEffect(() => {
+    if (!phase) return
+    if (canClearUnit(progress, phase.sections, phase.checkpoints)) {
+      tryClearUnit(phase.id, phase.sections, phase.checkpoints)
+    }
+  }, [phase, progress, tryClearUnit])
 
   if (!phase) {
     return (
@@ -17,10 +30,47 @@ export function PhasePage() {
     )
   }
 
+  const unlocked = isPhaseUnlocked(phase.id, progress)
   const idx = phases.findIndex((p) => p.id === phase.id)
   const prev = idx > 0 ? phases[idx - 1] : null
   const next = idx < phases.length - 1 ? phases[idx + 1] : null
   const done = progress.completedItems.includes(phase.id)
+  const cleared = progress.clearedUnits.includes(phase.id)
+  const quizIds = quizIdsInSections(phase.sections)
+  const quizzesPassed = quizIds.filter((id) => progress.sectionChecks.includes(id)).length
+  const drillsRated = phase.checkpoints.filter((c) => progress.drillRatings[c.id] != null).length
+
+  if (!unlocked) {
+    return (
+      <div>
+        <header className="page-header">
+          <span className="eyebrow">Locked</span>
+          <h1>{phase.title}</h1>
+          <p className="muted">{phase.goal}</p>
+          <div className="callout warn">
+            <strong>Clear the previous phase first</strong>
+            <span>
+              Pass section micro-checks and rate checkpoints on{' '}
+              {prev ? (
+                <Link to={`/phase/${prev.id}`}>{prev.shortTitle}</Link>
+              ) : (
+                'the prior unit'
+              )}{' '}
+              to unlock this phase.
+            </span>
+          </div>
+        </header>
+        <section className="section">
+          <h2>Learning outcomes (preview)</h2>
+          <ul className="block-list">
+            {phase.outcomes.map((o) => (
+              <li key={o}>{o}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -30,6 +80,17 @@ export function PhasePage() {
         </span>
         <h1>{phase.title}</h1>
         <p className="muted">{phase.goal}</p>
+        <div className="meta-row" style={{ marginTop: '0.75rem' }}>
+          {cleared ? <span className="chip done">Cleared</span> : null}
+          {quizIds.length > 0 ? (
+            <span className="chip">
+              Checks {quizzesPassed}/{quizIds.length}
+            </span>
+          ) : null}
+          <span className="chip">
+            Drills {drillsRated}/{phase.checkpoints.length}
+          </span>
+        </div>
         <div className="actions" style={{ marginTop: '1rem' }}>
           <button
             type="button"
@@ -42,6 +103,12 @@ export function PhasePage() {
             Practice checkpoints
           </Link>
         </div>
+        {!cleared ? (
+          <p className="muted" style={{ marginTop: '0.75rem' }}>
+            Clear this phase by passing all micro-checks and rating every checkpoint (Knew it or
+            Needs work) to unlock the next unit (+40 XP).
+          </p>
+        ) : null}
       </header>
 
       <section className="section">
@@ -113,7 +180,14 @@ export function PhasePage() {
         <p className="muted">Self-test these prompts — or run them in Drill mode.</p>
         <ul className="block-list">
           {phase.checkpoints.map((c) => (
-            <li key={c.id}>{c.prompt}</li>
+            <li key={c.id}>
+              {c.prompt}{' '}
+              {progress.drillRatings[c.id] ? (
+                <span className="chip done">Rated</span>
+              ) : (
+                <span className="chip">Unrated</span>
+              )}
+            </li>
           ))}
         </ul>
       </section>
@@ -127,9 +201,13 @@ export function PhasePage() {
           <span />
         )}
         {next ? (
-          <Link className="btn btn-ghost" to={`/phase/${next.id}`}>
-            {next.shortTitle} →
-          </Link>
+          isPhaseUnlocked(next.id, progress) ? (
+            <Link className="btn btn-ghost" to={`/phase/${next.id}`}>
+              {next.shortTitle} →
+            </Link>
+          ) : (
+            <span className="muted">Clear this phase to unlock {next.shortTitle}</span>
+          )
         ) : (
           <Link className="btn btn-primary" to="/labs">
             Go to labs

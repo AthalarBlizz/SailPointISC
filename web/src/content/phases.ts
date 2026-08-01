@@ -1,4 +1,11 @@
 import type { Phase } from './types'
+import {
+  DIAGRAM_OBJECT_GRAPH,
+  DIAGRAM_AUTH_FLOW,
+  DIAGRAM_VERSIONING,
+  DIAGRAM_LEAVER,
+  DIAGRAM_EXTENSIBILITY,
+} from './diagrams'
 
 export const phases: Phase[] = [
   {
@@ -16,9 +23,32 @@ export const phases: Phase[] = [
     ],
     sections: [
       {
+        id: 'why',
+        title: 'Why this matters',
+        blocks: [
+          {
+            type: 'paragraph',
+            text: 'Every ISC API call mutates or reads one of a small set of objects. If you confuse identity with account, or access request with lifecycle, you will design the wrong integration — and sound junior in design reviews.',
+          },
+          {
+            type: 'callout',
+            tone: 'tip',
+            title: 'One sentence',
+            text: 'ISC is the governance brain: it correlates people to accounts across sources and drives joiner/mover/leaver and access decisions.',
+          },
+        ],
+      },
+      {
         id: 'vocab',
         title: 'Core vocabulary',
         blocks: [
+          {
+            type: 'diagram',
+            title: 'Object graph',
+            mermaid: DIAGRAM_OBJECT_GRAPH,
+            caption:
+              'Lifecycle on the identity profile drives provisioning to sources; roles compose access profiles which bundle entitlements.',
+          },
           {
             type: 'table',
             headers: ['Term', 'Plain language'],
@@ -42,6 +72,20 @@ export const phases: Phase[] = [
               ['Aggregation', 'Pulling accounts/entitlements into ISC'],
               ['Provisioning', 'Pushing create/update/disable/delete to sources'],
             ],
+          },
+          {
+            type: 'quiz',
+            id: 'phase-0:vocab:1',
+            prompt: 'A person has an AD login and a Salesforce login. How many identities vs accounts?',
+            choices: [
+              { id: 'a', label: '2 identities, 2 accounts' },
+              { id: 'b', label: '1 identity, 2 accounts' },
+              { id: 'c', label: '2 identities, 1 account' },
+              { id: 'd', label: '1 identity, 1 account' },
+            ],
+            correctId: 'b',
+            explanation:
+              'ISC correlates one identity to many accounts (one per source). AD and Salesforce are two accounts on two sources.',
           },
         ],
       },
@@ -103,6 +147,16 @@ export const phases: Phase[] = [
         title: 'Key facts',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Scripts authenticate with a Personal Access Token (PAT) via OAuth client credentials. The token is short-lived; authorization failures are usually scopes or the PAT owner’s user level — not a “bad secret.”',
+          },
+          {
+            type: 'diagram',
+            title: 'PAT → token → API',
+            mermaid: DIAGRAM_AUTH_FLOW,
+            caption: 'Reuse one token per run. SDKs refresh automatically; raw REST must not mint a token per call.',
+          },
+          {
             type: 'list',
             items: [
               'Token ~12 minutes; SDKs refresh automatically; raw REST must reuse one token per run.',
@@ -116,6 +170,20 @@ export const phases: Phase[] = [
             tone: 'tip',
             title: 'Secrets',
             text: 'This repo uses python-keyring (macOS Keychain). Never paste Client Secret into chat or commit .env files.',
+          },
+          {
+            type: 'quiz',
+            id: 'phase-1:facts:1',
+            prompt: 'Valid bearer token, HTTP 403 on create access request. Most likely cause?',
+            choices: [
+              { id: 'a', label: 'Wrong client secret' },
+              { id: 'b', label: 'Missing scope or insufficient user level' },
+              { id: 'c', label: 'Token expired' },
+              { id: 'd', label: 'Rate limited' },
+            ],
+            correctId: 'b',
+            explanation:
+              '401 = auth failed (bad/expired token). 403 = authenticated but not authorized. 429 = rate limit.',
           },
         ],
       },
@@ -199,6 +267,31 @@ export const phases: Phase[] = [
         id: 'paths',
         title: 'Path shapes to recognize',
         blocks: [
+          {
+            type: 'paragraph',
+            text: 'As of July 2026 you must be bilingual: legacy yearly collections still work, but greenfield work targets per-service semantic versions. /latest auto-routes and can break silently — treat it as unsafe for production.',
+          },
+          {
+            type: 'diagram',
+            title: 'Dual-world versioning',
+            mermaid: DIAGRAM_VERSIONING,
+            caption:
+              'Support tickets for legacy through Q2 2028; endpoints stop Q1 2029. Prefer /identities/v1 over /v2026/identities.',
+          },
+          {
+            type: 'quiz',
+            id: 'phase-2:paths:1',
+            prompt: 'Greenfield emergency-disable service in Aug 2026 — which path shape?',
+            choices: [
+              { id: 'a', label: '/v2026/identities' },
+              { id: 'b', label: '/latest/identities' },
+              { id: 'c', label: '/identities/v1' },
+              { id: 'd', label: '/beta/identities' },
+            ],
+            correctId: 'c',
+            explanation:
+              'Per-service /identities/v1 is the current model. Yearly and /latest are maintain/migrate concerns, not greenfield defaults.',
+          },
           {
             type: 'code',
             language: 'text',
@@ -310,13 +403,34 @@ const accounts = await api.listAccountsV1({ limit: 10 });
         blocks: [
           {
             type: 'paragraph',
-            text: 'Resolve identity by alias/name; never hardcode lifecycle state GUIDs; set lifecycle state to drive cascading disable/provisioning.',
+            text: 'Resolve identity by alias/name; never hardcode lifecycle state GUIDs; set lifecycle state to drive cascading disable/provisioning. Always verify with a GET after mutation.',
+          },
+          {
+            type: 'diagram',
+            title: 'Emergency disable / leaver sequence',
+            mermaid: DIAGRAM_LEAVER,
+            caption:
+              'Name-resolve Terminated (or your tenant’s leaver state), mutate, then GET to confirm before/after.',
           },
           {
             type: 'callout',
             tone: 'tip',
             title: 'Say this',
             text: 'For emergency disable I set lifecycle to Terminated (resolved by name) so ISC provisions disables downstream — I don’t invent per-app disable loops unless the source is unmanaged.',
+          },
+          {
+            type: 'quiz',
+            id: 'phase-3:3a:1',
+            prompt: 'Correct first step to disable Jennifer.Thomas by lifecycle?',
+            choices: [
+              { id: 'a', label: 'POST set-lifecycle-state with a hardcoded Terminated GUID' },
+              { id: 'b', label: 'GET identities with alias filter, then resolve lifecycle state by name' },
+              { id: 'c', label: 'Disable every account in a for-loop without touching lifecycle' },
+              { id: 'd', label: 'Submit an access request to remove all roles' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Resolve identity, resolve lifecycle state by name on the profile, then set state and verify. Never hardcode tenant GUIDs.',
           },
         ],
       },
@@ -336,7 +450,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
         blocks: [
           {
             type: 'paragraph',
-            text: 'Memorize operators: eq, ne, co, sw, gt/lt/ge/le, pr, in, and/or. PATCH uses JSON Patch (application/json-patch+json).',
+            text: 'Memorize operators: eq, ne, co, sw, gt/lt/ge/le, pr, in, and/or. PATCH uses JSON Patch (application/json-patch+json). Prefer list filters for real-time ITDR; Search for analytics with possible index lag.',
           },
         ],
       },
@@ -381,6 +495,10 @@ const accounts = await api.listAccountsV1({ limit: 10 });
         title: 'Three TypeScript surfaces — do not conflate',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'TypeScript is first-class for Node services and for SaaS Connectivity. Do not conflate the API client package with the connector SDK.',
+          },
+          {
             type: 'table',
             headers: ['Surface', 'Package / tool', 'Used for'],
             rows: [
@@ -400,6 +518,20 @@ const accounts = await api.listAccountsV1({ limit: 10 });
                 'Mutate before/after connector operations',
               ],
             ],
+          },
+          {
+            type: 'quiz',
+            id: 'phase-4:surfaces:1',
+            prompt: 'Nightly compliance report in Node — which surface?',
+            choices: [
+              { id: 'a', label: 'SaaS Connectivity connector SDK' },
+              { id: 'b', label: 'sailpoint-api-client (API SDK)' },
+              { id: 'c', label: 'Connector customizer only' },
+              { id: 'd', label: 'BeanShell rule' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Reporting jobs call ISC APIs via the API SDK (or Python). Connectors are for Source aggregate/provision semantics.',
           },
         ],
       },
@@ -479,6 +611,20 @@ const accounts = await api.listAccountsV1({ limit: 10 });
             title: 'Decision rule',
             text: 'Script that runs on its own → SDK. Another system calling ISC → direct REST.',
           },
+          {
+            type: 'quiz',
+            id: 'phase-5:when:1',
+            prompt: 'ServiceNow must call ISC on a ticket transition. Best delivery artifact?',
+            choices: [
+              { id: 'a', label: 'Ask them to npm install sailpoint-api-client' },
+              { id: 'b', label: 'REST call sheet + PAT scopes + /service/vN paths' },
+              { id: 'c', label: 'Ship a BeanShell rule' },
+              { id: 'd', label: 'Use /latest so they never migrate' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Another system calling ISC → direct REST integration spec. SDKs belong in processes you own and run.',
+          },
         ],
       },
     ],
@@ -514,6 +660,15 @@ const accounts = await api.listAccountsV1({ limit: 10 });
         title: 'Extension points',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Not every problem is “write a script against the API.” Prefer the lightest extension point that fits — transforms before rules, workflows for event side-effects, connectors when you need a Source.',
+          },
+          {
+            type: 'diagram',
+            title: 'Extensibility decision tree',
+            mermaid: DIAGRAM_EXTENSIBILITY,
+          },
+          {
             type: 'table',
             headers: ['Mechanism', 'Code?', 'Typical use', 'Notes'],
             rows: [
@@ -543,17 +698,31 @@ const accounts = await api.listAccountsV1({ limit: 10 });
               ],
               [
                 'Connector customizers',
-                'TypeScript',
-                'Intercept SaaS connector I/O',
-                'Flexible for SaaS sources',
+                'TypeScript hooks',
+                'Tweak OOTB connector I/O',
+                'Before/after operations',
               ],
               [
-                'External integrations',
-                'Any via API',
-                'ITDR, HR, SIEM, ticketing',
-                'This curriculum’s core',
+                'External API',
+                'Any language',
+                'ITDR, SIEM, ServiceNow',
+                'PAT + /service/vN call sheet',
               ],
             ],
+          },
+          {
+            type: 'quiz',
+            id: 'phase-6:menu:1',
+            prompt: 'Lowercase HR email into an identity attribute on aggregation — best fit?',
+            choices: [
+              { id: 'a', label: 'Cloud rule' },
+              { id: 'b', label: 'Transform' },
+              { id: 'c', label: 'Workflow HTTP action' },
+              { id: 'd', label: 'SaaS Connectivity connector' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Deterministic string normalize is transform vocabulary. Rules/workflows/connectors are overkill.',
           },
         ],
       },
@@ -612,6 +781,20 @@ const accounts = await api.listAccountsV1({ limit: 10 });
             title: 'Practice',
             text: 'Write a one-page ADR: Greenfield ISC integration standards for our team — July 2026 (auth, SDK, versioning, secrets, dry-run, migration deadline).',
           },
+          {
+            type: 'quiz',
+            id: 'phase-7:topics:1',
+            prompt: 'After set-lifecycle-state, what should you do next?',
+            choices: [
+              { id: 'a', label: 'Assume success and exit' },
+              { id: 'b', label: 'GET the identity and compare before/after' },
+              { id: 'c', label: 'Delete the PAT' },
+              { id: 'd', label: 'Switch to /latest for confirmation' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Always verify mutations. Before/after evidence is required for ITDR and audits.',
+          },
         ],
       },
     ],
@@ -649,6 +832,10 @@ const accounts = await api.listAccountsV1({ limit: 10 });
         title: 'Weekly fluency drill (15 minutes)',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Capstones are design deliverables. Use Snapshot, name-resolve every object, pin /service/vN, and keep the weak queue honest with a weekly 15-minute drill.',
+          },
+          {
             type: 'list',
             ordered: true,
             items: [
@@ -683,3 +870,4 @@ export function allDrills() {
     p.checkpoints.map((d) => ({ ...d, phaseId: p.id, phaseTitle: p.shortTitle })),
   )
 }
+

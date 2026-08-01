@@ -3,10 +3,12 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { phases, tracks, implementationModules } from '../content'
 import { useProgress } from '../hooks/useProgress'
 import type { LearningPathId } from '../lib/storage'
+import { xpProgressToNext, isPhaseUnlocked, isModuleUnlocked } from '../lib/gamification'
+import { ToastHost } from './ToastHost'
 
 const bottomLinks = [
   { to: '/', label: 'Home', ico: '⌂' },
-  { to: '/snapshot', label: 'Snapshot', ico: '⧉' },
+  { to: '/achievements', label: 'XP', ico: '★' },
   { to: '/drills', label: 'Drills', ico: '✎' },
   { to: '/labs', label: 'Labs', ico: '⬡' },
 ]
@@ -14,11 +16,11 @@ const bottomLinks = [
 export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const { rememberRoute, activePath, setActivePath, pathChosen } = useProgress()
+  const { rememberRoute, activePath, setActivePath, pathChosen, progress } = useProgress()
+  const xpInfo = xpProgressToNext(progress.xp, activePath)
 
   useEffect(() => {
     setMenuOpen(false)
-    // Persist outside React state to avoid render loops.
     rememberRoute(location.pathname + location.search)
   }, [location.pathname, location.search, rememberRoute])
 
@@ -47,6 +49,17 @@ export function AppShell() {
           </span>
         </NavLink>
         <div className="topbar-actions">
+          {pathChosen ? (
+            <NavLink to="/achievements" className="status-chip" title="Achievements">
+              <span className="status-rank">{xpInfo.current.label}</span>
+              <span className="status-xp">{progress.xp} XP</span>
+              {progress.streakDays > 0 ? (
+                <span className="status-streak" aria-label={`${progress.streakDays} day streak`}>
+                  {progress.streakDays}d
+                </span>
+              ) : null}
+            </NavLink>
+          ) : null}
           {pathChosen ? (
             <div className="path-switch" role="group" aria-label="Learning path">
               <button
@@ -86,6 +99,12 @@ export function AppShell() {
             Home
           </NavLink>
           <NavLink
+            to="/achievements"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+          >
+            Achievements
+          </NavLink>
+          <NavLink
             to="/snapshot"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
           >
@@ -107,16 +126,28 @@ export function AppShell() {
           {activePath === 'fluency' ? (
             <>
               <div className="nav-label">Path A · Phases</div>
-              {phases.map((p) => (
-                <NavLink
-                  key={p.id}
-                  to={`/phase/${p.id}`}
-                  className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-                >
-                  <span className="num">{p.number}</span>
-                  {p.shortTitle}
-                </NavLink>
-              ))}
+              {phases.map((p) => {
+                const unlocked = isPhaseUnlocked(p.id, progress)
+                const cleared = progress.clearedUnits.includes(p.id)
+                return (
+                  <NavLink
+                    key={p.id}
+                    to={unlocked ? `/phase/${p.id}` : '#'}
+                    onClick={(e) => {
+                      if (!unlocked) e.preventDefault()
+                    }}
+                    className={({ isActive }) =>
+                      `nav-link${isActive ? ' active' : ''}${!unlocked ? ' locked' : ''}`
+                    }
+                    aria-disabled={!unlocked}
+                  >
+                    <span className="num">{p.number}</span>
+                    {p.shortTitle}
+                    {cleared ? <span className="nav-tick">✓</span> : null}
+                    {!unlocked ? <span className="nav-lock">🔒</span> : null}
+                  </NavLink>
+                )
+              })}
             </>
           ) : (
             <>
@@ -127,14 +158,24 @@ export function AppShell() {
                   {t.moduleIds.map((mid) => {
                     const mod = implementationModules.find((m) => m.id === mid)
                     if (!mod) return null
+                    const unlocked = isModuleUnlocked(mid, progress)
+                    const cleared = progress.clearedUnits.includes(mid)
                     return (
                       <NavLink
                         key={mid}
-                        to={`/module/${mid}`}
-                        className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                        to={unlocked ? `/module/${mid}` : '#'}
+                        onClick={(e) => {
+                          if (!unlocked) e.preventDefault()
+                        }}
+                        className={({ isActive }) =>
+                          `nav-link${isActive ? ' active' : ''}${!unlocked ? ' locked' : ''}`
+                        }
+                        aria-disabled={!unlocked}
                       >
                         <span className="num">M{mod.number}</span>
                         {mod.shortTitle}
+                        {cleared ? <span className="nav-tick">✓</span> : null}
+                        {!unlocked ? <span className="nav-lock">🔒</span> : null}
                       </NavLink>
                     )
                   })}
@@ -159,6 +200,8 @@ export function AppShell() {
       <main id="main" className={`main${!pathChosen ? ' main-solo' : ''}`}>
         <Outlet />
       </main>
+
+      <ToastHost />
 
       {pathChosen ? (
         <nav className="bottom-nav" aria-label="Mobile">

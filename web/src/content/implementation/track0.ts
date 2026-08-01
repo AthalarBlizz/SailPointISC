@@ -1,4 +1,9 @@
 import type { Module } from '../types'
+import {
+  DIAGRAM_OBJECT_GRAPH,
+  DIAGRAM_AUTH_FLOW,
+  DIAGRAM_VERSIONING,
+} from '../diagrams'
 
 export const modules: Module[] = [
   {
@@ -35,6 +40,12 @@ export const modules: Module[] = [
             text: 'ISC governs Identities. Accounts are records on Sources. Entitlements hang off accounts/sources. Access profiles bundle entitlements; roles compose business access (often via profiles). Lifecycle states on an identity profile drive joiner/mover/leaver provisioning.',
           },
           {
+            type: 'diagram',
+            title: 'Platform object graph',
+            mermaid: DIAGRAM_OBJECT_GRAPH,
+            caption: 'Resolve every object by name at runtime — GUIDs are tenant-specific.',
+          },
+          {
             type: 'table',
             headers: ['Object', 'Resolved by', 'Typical API surface'],
             rows: [
@@ -50,6 +61,20 @@ export const modules: Module[] = [
             tone: 'warn',
             title: 'GUID portability',
             text: 'Never hardcode tenant object IDs. Resolve by name at runtime — IDs differ across sandboxes and prod.',
+          },
+          {
+            type: 'quiz',
+            id: 'm0:object-graph:1',
+            prompt: 'Emergency offboard should primarily mutate which object?',
+            choices: [
+              { id: 'a', label: 'A single AD account only' },
+              { id: 'b', label: 'Identity lifecycle state (name-resolved)' },
+              { id: 'c', label: 'Access request to revoke one entitlement' },
+              { id: 'd', label: 'Certification campaign' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Lifecycle on the identity drives cascading provisioning. Per-account disable is an edge case for unmanaged sources.',
           },
         ],
       },
@@ -143,6 +168,11 @@ export const modules: Module[] = [
             text: 'Prefer PAT for scripts and automations. Token endpoint is tenant OAuth; modern client IDs are UUID-with-dashes. Rate limit order of magnitude: ~100 requests per access_token per 10 seconds.',
           },
           {
+            type: 'diagram',
+            title: 'Auth and error classes',
+            mermaid: DIAGRAM_AUTH_FLOW,
+          },
+          {
             type: 'code',
             language: 'bash',
             code: `curl -s -X POST "https://{tenant}.api.identitynow.com/oauth/token" \\
@@ -163,6 +193,20 @@ configuration = Configuration()  # SDK refreshes tokens`,
             tone: 'warn',
             title: 'Secrets',
             text: 'OS keychain / vault only. Never commit .env, never paste Client Secret into chat or tickets.',
+          },
+          {
+            type: 'quiz',
+            id: 'm1:pat-flow:1',
+            prompt: 'Minting a new OAuth token on every API call mainly causes…',
+            choices: [
+              { id: 'a', label: 'Faster throughput' },
+              { id: 'b', label: '429 rate limits and wasted latency' },
+              { id: 'c', label: 'Automatic scope elevation' },
+              { id: 'd', label: 'Longer token TTL' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Reuse one token per run (~12 min TTL). Token spam hits rate limits (~100 req / token / 10s).',
           },
         ],
       },
@@ -249,6 +293,15 @@ configuration = Configuration()  # SDK refreshes tokens`,
         title: 'Dual-world paths (July 2026)',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Greenfield pins to per-service /resource/vN. Brownfield inventories scripts and workflow HTTP actions, then migrates before Q1 2029 EOL. /latest is an unsafe production alias under the July 2026 strategy.',
+          },
+          {
+            type: 'diagram',
+            title: 'Dual-world migration',
+            mermaid: DIAGRAM_VERSIONING,
+          },
+          {
             type: 'code',
             language: 'text',
             code: `# PREFER (per-service semantic version)
@@ -266,6 +319,20 @@ https://{tenant}.api.identitynow.com/latest/...        # avoid in production`,
             tone: 'info',
             title: 'Why per-service',
             text: 'Yearly collections forced churn without contract breaks. Majors bump only on breaking changes; services version independently.',
+          },
+          {
+            type: 'quiz',
+            id: 'm2:dual-world:1',
+            prompt: 'Why is /latest unsafe for production integrations?',
+            choices: [
+              { id: 'a', label: 'It requires experimental headers' },
+              { id: 'b', label: 'It can silently retarget when routing changes' },
+              { id: 'c', label: 'It only works with Python SDK 1.x' },
+              { id: 'd', label: 'It disables rate limits' },
+            ],
+            correctId: 'b',
+            explanation:
+              '/latest auto-routes and can break silently. Pin explicit /service/vN for production.',
           },
         ],
       },
@@ -370,6 +437,24 @@ const page = await api.listAccountsV1({ limit: 250, filters: 'identityId eq "…
               'Only then choose SDK method or write REST call sheet.',
               'After mutate: plan the verifying GET from the same spec.',
             ],
+          },
+          {
+            type: 'paragraph',
+            text: 'Why this matters: during the dual-world period, model memory and old blog posts still invent /v2025 paths. Specs are the only ground truth that survive the July 2026 migration.',
+          },
+          {
+            type: 'quiz',
+            id: 'm3:where-truth:1',
+            prompt: 'Before writing list-accounts code, what do you open first?',
+            choices: [
+              { id: 'a', label: 'An LLM chat and accept the first path it suggests' },
+              { id: 'b', label: 'Current OpenAPI (sailpoint-api.yaml / /accounts/v1 docs) for path, params, scopes' },
+              { id: 'c', label: 'Only a 2024 blog post with /v3/accounts examples' },
+              { id: 'd', label: 'The connector SDK README' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Locate the operation in current specs first — then pick SDK method or REST. Never invent endpoints from training data during the dual-world transition.',
           },
         ],
       },

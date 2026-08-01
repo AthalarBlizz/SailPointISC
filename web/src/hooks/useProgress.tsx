@@ -14,20 +14,31 @@ import {
   resetActivePathProgress,
   parseProgressImport,
   shareOrDownloadProgress,
+  STORAGE_KEY,
   type DualProgressState,
   type PathProgress,
   type LearningPathId,
   type DrillRating,
 } from '../lib/storage'
+import { applyGameEvent, type GameEvent } from '../lib/gamification'
+import { labs } from '../content/labs'
+import { badges } from '../content/badges'
+
+export type ToastItem = {
+  id: string
+  kind: 'xp' | 'badge' | 'clear'
+  message: string
+}
 
 type ProgressContextValue = {
   dual: DualProgressState
   activePath: LearningPathId
   pathChosen: boolean
   progress: PathProgress
+  toasts: ToastItem[]
+  dismissToast: (id: string) => void
   setActivePath: (path: LearningPathId) => void
   choosePath: (path: LearningPathId) => void
-  /** Persist continue URL without triggering React updates on every navigation. */
   rememberRoute: (route: string) => void
   getContinueRoute: (fallback: string) => string
   toggleItemComplete: (itemId: string) => void
@@ -37,6 +48,9 @@ type ProgressContextValue = {
   setLabNotes: (labId: string, notes: string) => void
   markVersioningCorrect: (itemId: string) => void
   markFilterCorrect: (itemId: string) => void
+  markQuizCorrect: (quizId: string) => void
+  markDecisionCorrect: (scenarioId: string) => void
+  tryClearUnit: (unitId: string, sections: { blocks: { type: string; id?: string }[] }[], checkpoints: { id: string }[]) => boolean
   resetActivePath: () => void
   resetAll: () => void
   exportProgress: () => Promise<'shared' | 'downloaded'>
@@ -53,28 +67,93 @@ function updateActive(
   return { ...dual, [key]: fn(dual[key]) }
 }
 
-const ROUTE_STORAGE_KEY = 'isc-curriculum-progress-v3'
-
 function persistRoute(path: LearningPathId, route: string) {
   try {
-    const raw = localStorage.getItem(ROUTE_STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return
     const dual = JSON.parse(raw) as DualProgressState
     if (!dual[path]) return
     if (dual[path].lastRoute === route) return
     dual[path].lastRoute = route
-    localStorage.setItem(ROUTE_STORAGE_KEY, JSON.stringify(dual))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dual))
   } catch {
     /* ignore */
   }
 }
 
+function pushToasts(
+  setToasts: React.Dispatch<React.SetStateAction<ToastItem[]>>,
+  xpGained: number,
+  newBadges: string[],
+  cleared?: string,
+) {
+  const items: ToastItem[] = []
+  if (xpGained > 0) {
+    items.push({
+      id: `xp-${Date.now()}`,
+      kind: 'xp',
+      message: `+${xpGained} XP`,
+    })
+  }
+  for (const b of newBadges) {
+    items.push({
+      id: `badge-${b}-${Date.now()}`,
+      kind: 'badge',
+      message: `Badge unlocked: ${badges.find((x) => x.id === b)?.title ?? b}`,
+    })
+  }
+  if (cleared) {
+    items.push({
+      id: `clear-${cleared}-${Date.now()}`,
+      kind: 'clear',
+      message: `Unit cleared: ${cleared}`,
+    })
+  }
+  if (items.length) {
+    setToasts((t) => [...t, ...items].slice(-5))
+  }
+}
+
+function labFullyChecked(progress: PathProgress, labId: string): boolean {
+  const lab = labs.find((l) => l.id === labId)
+  if (!lab) return false
+  const checks = progress.labChecks[labId] ?? []
+  if (lab.kind === 'capstone') {
+    return lab.checklist.length > 0 && lab.checklist.every((c) => checks.includes(c))
+  }
+  if (lab.kind === 'implementation') {
+    return lab.steps.length > 0 && lab.steps.every((c) => checks.includes(c))
+  }
+  return false
+}
+
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [dual, setDual] = useState<DualProgressState>(() => loadDualProgress())
+  const [toasts, setToasts] = useState<ToastItem[]>([])
 
   useEffect(() => {
     saveDualProgress(dual)
   }, [dual])
+
+  const applyEvent = useCallback((event: GameEvent) => {
+    setDual((d) => {
+      const path = d.activePath
+      const result = applyGameEvent(d[path], path, event)
+      queueMicrotask(() => {
+        pushToasts(
+          setToasts,
+          result.xpGained,
+          result.newBadges,
+          event.type === 'unitCleared' ? event.unitId : undefined,
+        )
+      })
+      return { ...d, [path]: result.progress }
+    })
+  }, [])
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((t) => t.filter((x) => x.id !== id))
+  }, [])
 
   const setActivePath = useCallback((path: LearningPathId) => {
     setDual((d) => ({ ...d, activePath: path, pathChosen: true }))
@@ -128,28 +207,40 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setDrillRating = useCallback((drillId: string, rating: DrillRating) => {
-    setDual((d) =>
-      updateActive(d, (p) => ({
-        ...p,
-        drillRatings: { ...p.drillRatings, [drillId]: rating },
-      })),
-    )
+    setDual((d) => {
+      const path = d.activePath
+      const prev = d[path].drillRatings[drillId]
+      const result = applyGameEvent(d[path], path, {
+        type: 'drill',
+        drillId,
+        rating,
+        prev,
+      })
+      queueMicrotask(() => pushToasts(setToasts, result.xpGained, result.newBadges))
+      return { ...d, [path]: result.progress }
+    })
   }, [])
 
   const toggleLabCheck = useCallback((labId: string, item: string) => {
-    setDual((d) =>
-      updateActive(d, (p) => {
-        const current = p.labChecks[labId] ?? []
-        const has = current.includes(item)
-        return {
-          ...p,
-          labChecks: {
-            ...p.labChecks,
-            [labId]: has ? current.filter((x) => x !== item) : [...current, item],
-          },
-        }
-      }),
-    )
+    setDual((d) => {
+      const path = d.activePath
+      let p = d[path]
+      const current = p.labChecks[labId] ?? []
+      const has = current.includes(item)
+      p = {
+        ...p,
+        labChecks: {
+          ...p.labChecks,
+          [labId]: has ? current.filter((x) => x !== item) : [...current, item],
+        },
+      }
+      if (!has && labFullyChecked(p, labId)) {
+        const result = applyGameEvent(p, path, { type: 'labComplete', labId })
+        queueMicrotask(() => pushToasts(setToasts, result.xpGained, result.newBadges))
+        p = result.progress
+      }
+      return { ...d, [path]: p }
+    })
   }, [])
 
   const setLabNotes = useCallback((labId: string, notes: string) => {
@@ -162,26 +253,56 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const markVersioningCorrect = useCallback((itemId: string) => {
-    setDual((d) =>
-      updateActive(d, (p) => ({
-        ...p,
-        versioningCorrect: p.versioningCorrect.includes(itemId)
-          ? p.versioningCorrect
-          : [...p.versioningCorrect, itemId],
-      })),
-    )
-  }, [])
+    applyEvent({ type: 'versioning', itemId })
+  }, [applyEvent])
 
   const markFilterCorrect = useCallback((itemId: string) => {
-    setDual((d) =>
-      updateActive(d, (p) => ({
-        ...p,
-        filterCorrect: p.filterCorrect.includes(itemId)
-          ? p.filterCorrect
-          : [...p.filterCorrect, itemId],
-      })),
-    )
-  }, [])
+    applyEvent({ type: 'filter', itemId })
+  }, [applyEvent])
+
+  const markQuizCorrect = useCallback((quizId: string) => {
+    applyEvent({ type: 'quiz', quizId })
+  }, [applyEvent])
+
+  const markDecisionCorrect = useCallback((scenarioId: string) => {
+    applyEvent({ type: 'decision', scenarioId })
+  }, [applyEvent])
+
+  const tryClearUnit = useCallback(
+    (
+      unitId: string,
+      sections: { blocks: { type: string; id?: string }[] }[],
+      checkpoints: { id: string }[],
+    ) => {
+      let cleared = false
+      setDual((d) => {
+        const path = d.activePath
+        const p = d[path]
+        const quizIds: string[] = []
+        for (const s of sections) {
+          for (const b of s.blocks) {
+            if (b.type === 'quiz' && b.id) quizIds.push(b.id)
+          }
+        }
+        const quizzesOk =
+          quizIds.length === 0 || quizIds.every((id) => p.sectionChecks.includes(id))
+        const drillsOk =
+          checkpoints.length === 0 ||
+          checkpoints.every((c) => p.drillRatings[c.id] != null)
+        if (!quizzesOk || !drillsOk || p.clearedUnits.includes(unitId)) {
+          return d
+        }
+        const result = applyGameEvent(p, path, { type: 'unitCleared', unitId })
+        cleared = true
+        queueMicrotask(() =>
+          pushToasts(setToasts, result.xpGained, result.newBadges, unitId),
+        )
+        return { ...d, [path]: result.progress }
+      })
+      return cleared
+    },
+    [],
+  )
 
   const resetActivePath = useCallback(() => {
     setDual((d) => resetActivePathProgress(d))
@@ -192,7 +313,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const exportProgress = useCallback(async () => {
-    // Prefer the latest persisted blob so lastRoute from rememberRoute is included.
     const latest = loadDualProgress()
     const merged: DualProgressState = {
       ...dual,
@@ -222,6 +342,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       activePath: dual.activePath,
       pathChosen: dual.pathChosen,
       progress: dual[dual.activePath],
+      toasts,
+      dismissToast,
       setActivePath,
       choosePath,
       rememberRoute,
@@ -233,6 +355,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setLabNotes,
       markVersioningCorrect,
       markFilterCorrect,
+      markQuizCorrect,
+      markDecisionCorrect,
+      tryClearUnit,
       resetActivePath,
       resetAll,
       exportProgress,
@@ -240,6 +365,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }),
     [
       dual,
+      toasts,
+      dismissToast,
       setActivePath,
       choosePath,
       rememberRoute,
@@ -251,6 +378,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setLabNotes,
       markVersioningCorrect,
       markFilterCorrect,
+      markQuizCorrect,
+      markDecisionCorrect,
+      tryClearUnit,
       resetActivePath,
       resetAll,
       exportProgress,

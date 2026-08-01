@@ -7,6 +7,15 @@ export type ContentBlock =
   | { type: 'code'; language?: string; code: string }
   | { type: 'callout'; tone?: 'info' | 'warn' | 'tip'; title?: string; text: string }
   | { type: 'links'; items: { label: string; href: string }[] }
+  | { type: 'diagram'; title?: string; mermaid: string; caption?: string }
+  | {
+      type: 'quiz'
+      id: string
+      prompt: string
+      choices: { id: string; label: string }[]
+      correctId: string
+      explanation: string
+    }
 
 export type Section = {
   id: string
@@ -121,13 +130,30 @@ export type ImplementationLab = {
   path: LabPathTag
 }
 
+export type DecisionScenario = {
+  id: string
+  prompt: string
+  /** Preferred extension point / answer label */
+  answer: string
+  rationale: string
+  /** Multiple-choice options; correct choice matches `answer` */
+  choices: string[]
+}
+
 export type DecisionLab = {
   id: string
   kind: 'decision'
   title: string
   description: string
-  scenarios: { id: string; prompt: string; answer: string; rationale: string }[]
+  scenarios: DecisionScenario[]
   path: LabPathTag
 }
 
 export type Lab = CapstoneLab | VersioningLab | FilterLab | ImplementationLab | DecisionLab
+
+export type BadgeDef = {
+  id: string
+  title: string
+  description: string
+  path: LearningPathId | 'both'
+}

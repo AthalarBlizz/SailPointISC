@@ -7,6 +7,8 @@
 
 > **Dual paths:** This file is **Path A (Conversational fluency)**. For the senior enterprise **implementation** curriculum (REST, all SDKs, CLI, transforms, rules, workflows, connectors, customizers), see [`docs/curriculum/`](curriculum/) — **Path B**. The [web app](../web/) lets you choose a path and swap anytime; progress is saved separately.
 
+The gamified web app awards XP, unlocks modules as you progress, renders Mermaid diagrams inline, and runs micro-checks (quizzes) against Path A phases and Path B modules — use it alongside these markdown files, not instead of them.
+
 **How to use this with your local sandbox:** Activate `.venv`, keep `api-specs/` current, and use Cursor Agent mode against `CLAUDE.md` + specs. Live tenant exercises are marked **[TENANT]** and are optional until you have access.
 
 **Interactive web app:** Practice on phone or desktop via the app in [`web/`](../web/) (`npm run dev`, or GitHub Pages). Pick Fluency or Implementation on first launch.
@@ -81,6 +83,20 @@ Total guided path: ~2–3 weeks part-time, or ~1 intensive week, then keep drill
 | **Aggregation** | Pulling accounts/entitlements into ISC |
 | **Provisioning** | Pushing create/update/disable/delete to sources |
 
+### Object graph
+
+```mermaid
+flowchart LR
+  IdentityProfile[IdentityProfile] --> Identity
+  IdentityProfile --> Lifecycle[LifecycleState]
+  Identity --> Account
+  Source --> Account
+  Account --> Entitlement
+  Entitlement --> AccessProfile
+  AccessProfile --> Role
+  Lifecycle -.->|drives provisioning| Source
+```
+
 ### Study
 1. Skim [developer.sailpoint.com](https://developer.sailpoint.com/docs/) landing and API overview.
 2. Read this repo’s `README.md` and the three scenario docstrings in `src/scenario*.py` — they are “why the API exists” stories.
@@ -113,6 +129,27 @@ You can answer without notes:
 - Rate limit order of magnitude: **100 requests per access_token per 10 seconds** (confirm in current docs if quoting SLAs).
 - 403 often means: wrong user level, missing scope, *or* endpoint needs user context that client-credentials cannot provide.
 
+### Auth flow
+
+```mermaid
+sequenceDiagram
+  participant Script
+  participant OAuth as OAuthToken
+  participant API as ISC_API
+  Script->>OAuth: POST client_credentials
+  OAuth-->>Script: access_token ~12min
+  Script->>API: Authorization Bearer
+  alt 401
+    API-->>Script: invalid or expired token
+  else 403
+    API-->>Script: scope or user level
+  else 429
+    API-->>Script: rate limited backoff
+  else 2xx
+    API-->>Script: payload
+  end
+```
+
 ### Practice (offline)
 1. Trace `auth_starter.py` and explain SDK vs REST paths aloud.
 2. In Agent mode: “List the scopes required for access-request create from `api-specs`.”
@@ -137,6 +174,22 @@ You can answer without notes:
 1. [API Versioning Strategy](https://developer.sailpoint.com/docs/api/api-versioning-strategy) — current model
 2. [API Versioning Migration](https://developer.sailpoint.com/docs/api/api-versioning-migration/) — scripts + path mapping
 3. Community posts: [strategy updates](https://developer.sailpoint.com/discuss/t/api-versioning-strategy-updates/211805), [what’s changed / migrate (2026-07-14)](https://developer.sailpoint.com/discuss/t/api-versioning-strategy-update-whats-changed-and-how-to-migrate/216376)
+
+### Dual-world versioning
+
+```mermaid
+flowchart TB
+  subgraph legacy [Legacy yearly]
+    Y["/v2026/identities"]
+    Latest["/latest/..."]
+  end
+  subgraph modern [Per-service July 2026]
+    S["/identities/v1"]
+  end
+  Y -->|migrate| S
+  Latest -->|unsafe for prod| S
+  EOL["Legacy EOL Q1 2029"] -.-> legacy
+```
 
 ### Path shapes to recognize instantly
 
@@ -190,6 +243,19 @@ Design integrations verbally for joiner / mover / leaver, emergency disable, acc
 
 ### Module 3A — Identities, accounts, lifecycle
 **Concepts:** resolve identity by alias/name; never hardcode lifecycle state GUIDs; set lifecycle state to drive cascading disable/provisioning.
+
+```mermaid
+sequenceDiagram
+  participant Bot as Integration
+  participant IdAPI as Identities_v1
+  participant Prof as IdentityProfiles
+  Bot->>IdAPI: GET filters alias eq
+  IdAPI-->>Bot: identity id + before state
+  Bot->>Prof: list lifecycle states by name
+  Prof-->>Bot: Terminated id
+  Bot->>IdAPI: set-lifecycle-state
+  Bot->>IdAPI: GET verify after state
+```
 
 **Repo lab:** `src/scenario1_itdr_disable.py` (REST integration-spec pattern).  
 **Rewrite exercise:** Express the same two calls as `/identities/v1` + lifecycle endpoints using current docs (Agent mode + `sailpoint-api.yaml`).
@@ -305,6 +371,23 @@ Conversational developers know the *menu* of extension points.
 | **SaaS Connectivity** | **TypeScript** | Custom connectors in SailPoint cloud | Target reachable from cloud; `spcx` local debug |
 | **Connector customizers** | **TypeScript** | Intercept SaaS connector I/O | More flexible than classic rules for SaaS sources |
 | **External integrations** | Any language via API | ITDR, HR, SIEM, ticketing | This curriculum’s core |
+
+### Decision tree
+
+```mermaid
+flowchart TD
+  Need[Change needed] --> Q1{Attribute mapping only?}
+  Q1 -->|yes| Transform
+  Q1 -->|no| Q2{Event side effects HTTP?}
+  Q2 -->|yes| Workflow
+  Q2 -->|no| Q3{New Source aggregate provision?}
+  Q3 -->|yes| SaaSConnector[SaaS Connectivity]
+  Q3 -->|no| Q4{Tweak OOTB connector IO?}
+  Q4 -->|yes| Customizer
+  Q4 -->|no| Q5{Complex BeanShell logic?}
+  Q5 -->|yes| Rule
+  Q5 -->|no| ExternalAPI[External API script]
+```
 
 ### Study
 - [Transforms](https://developer.sailpoint.com/docs/extensibility/transforms)

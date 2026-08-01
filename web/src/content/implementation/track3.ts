@@ -1,4 +1,5 @@
 import type { Module } from '../types'
+import { DIAGRAM_EXTENSIBILITY, DIAGRAM_CONNECTOR_LIFECYCLE } from '../diagrams'
 
 export const modules: Module[] = [
   {
@@ -29,6 +30,17 @@ export const modules: Module[] = [
         id: 'json',
         title: 'Transform JSON shape',
         blocks: [
+          {
+            type: 'paragraph',
+            text: 'Why this matters: jumping to BeanShell for lowercase email creates review/install debt transforms avoid. Start at the lightest extension point — the decision tree below is the map for M12–M16.',
+          },
+          {
+            type: 'diagram',
+            title: 'Extensibility decision tree',
+            mermaid: DIAGRAM_EXTENSIBILITY,
+            caption:
+              'Transforms → workflows → SaaS connectors → customizers → rules → external API. Prefer the lightest fit.',
+          },
           {
             type: 'code',
             language: 'json',
@@ -65,6 +77,20 @@ export const modules: Module[] = [
                 href: 'https://developer.sailpoint.com/docs/extensibility/transforms',
               },
             ],
+          },
+          {
+            type: 'quiz',
+            id: 'm12:json:1',
+            prompt: 'Need to lowercase HR email on aggregate — which extension point?',
+            choices: [
+              { id: 'a', label: 'BeanShell rule' },
+              { id: 'b', label: 'Transform (type lower / accountAttribute)' },
+              { id: 'c', label: 'Full SaaS Connectivity connector' },
+              { id: 'd', label: 'Workflow HTTP action on every identity event' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Deterministic attribute map/calculate belongs in transforms. Rules, connectors, and workflows are heavier tools for other jobs.',
           },
         ],
       },
@@ -336,6 +362,17 @@ Content-Type: application/json
         title: 'Connector pattern (illustrative)',
         blocks: [
           {
+            type: 'paragraph',
+            text: 'Why this matters: implementing provision before you can list/read accounts leaves you unable to aggregate or reconcile — the command lifecycle below is the order of proof for a Source.',
+          },
+          {
+            type: 'diagram',
+            title: 'Connector command lifecycle',
+            mermaid: DIAGRAM_CONNECTOR_LIFECYCLE,
+            caption:
+              'testConnection → account list → read / entitlement ops → create/update/disable. Prove aggregation before provisioning.',
+          },
+          {
             type: 'code',
             language: 'typescript',
             code: `import { createConnector, StandardCommand } from '@sailpoint/connector-sdk';
@@ -354,6 +391,20 @@ export const connector = createConnector()
             tone: 'info',
             title: 'Loopback',
             text: 'A loopback connector drives ISC via its own API — powerful and easy to get wrong. Require ADR + rate-limit design.',
+          },
+          {
+            type: 'quiz',
+            id: 'm15:pattern:1',
+            prompt: 'Which command should you harden before StdAccountCreate?',
+            choices: [
+              { id: 'a', label: 'Only Slack notification hooks' },
+              { id: 'b', label: 'testConnection and StdAccountList (then read/entitlements)' },
+              { id: 'c', label: 'Certification campaign APIs' },
+              { id: 'd', label: 'Identity Search with searchAfter' },
+            ],
+            correctId: 'b',
+            explanation:
+              'Aggregation (test + list/read/entitlements) is the Source contract. Provisioning on a connector that cannot list is not enterprise-ready.',
           },
         ],
       },
