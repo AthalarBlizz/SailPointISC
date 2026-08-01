@@ -1,6 +1,15 @@
 # ISC Developer Curriculum (web app)
 
-Mobile-first learning app for the SailPoint ISC developer curriculum.
+Mobile-first dual-path learning app for SailPoint ISC.
+
+## Paths
+
+| Path | Focus |
+|------|--------|
+| **Fluency** | Conversational checkpoints, phases 0–8 |
+| **Implementation** | Senior modules M0–M20 (APIs, SDKs, extensibility) |
+
+Choose on first visit; switch anytime from the top bar. Progress is stored separately per path (`localStorage` v2).
 
 ## Local
 
@@ -10,31 +19,16 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173/`).
-
-```bash
-npm run build    # production build → dist/
-npm run preview  # preview production build
-```
-
 ## GitHub Pages
 
-Deployed by [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) on push to `main` when `web/` changes.
+Deployed by [`.github/workflows/pages.yml`](../.github/workflows/pages.yml).
 
-One-time repo setup:
+App URL: `https://athalarblizz.github.io/SailPointISC/`
 
-1. **Settings → Pages → Build and deployment → Source:** GitHub Actions
-2. Push to `main` (or run the workflow manually)
-3. App URL: `https://<user>.github.io/SailPointISC/`
-
-Production builds use `VITE_BASE=/SailPointISC/` so assets resolve under the project path. HashRouter is used so deep links work without server rewrites (`.../#/phase/phase-2`).
-
-## Embed later / Capacitor later
-
-- Set `VITE_BASE` to the path prefix where the app will live (e.g. `/learn/`).
-- Progress uses a `StorageAdapter` (`localStorage` today) — swap for Capacitor Preferences when wrapping native apps.
-- No backend; works offline after first load (content is bundled).
+Production builds use `VITE_BASE=/SailPointISC/`. HashRouter for deep links (`.../#/module/m2`).
 
 ## Content
 
-Runtime content lives in `src/content/`. Editorial source of truth for curriculum text remains [`docs/curriculum.md`](../docs/curriculum.md) — port changes into the typed modules when updating.
+- Path A: `src/content/phases.ts`
+- Path B: `src/content/implementation/`
+- Shared: snapshot, glossary, labs

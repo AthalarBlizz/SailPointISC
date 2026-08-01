@@ -61,7 +61,7 @@ Never paste Client Secret into chat. Never commit credentials.
 
 ## How to learn with Agent mode
 
-Follow [`curriculum.md`](curriculum.md) for a structured path, or run the interactive app:
+Follow [`curriculum.md`](curriculum.md) (**Path A — Fluency**) or [`curriculum/`](curriculum/) (**Path B — Implementation**), or run the interactive app (path switcher on first launch):
 
 ```bash
 cd web && npm install && npm run dev

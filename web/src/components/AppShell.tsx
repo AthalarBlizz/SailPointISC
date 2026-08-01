@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { phases } from '../content'
+import { phases, tracks, implementationModules } from '../content'
 import { useProgress } from '../hooks/useProgress'
+import type { LearningPathId } from '../lib/storage'
 
 const bottomLinks = [
   { to: '/', label: 'Home', ico: '⌂' },
@@ -13,12 +14,16 @@ const bottomLinks = [
 export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const { setLastRoute } = useProgress()
+  const { setLastRoute, activePath, setActivePath, pathChosen } = useProgress()
 
   useEffect(() => {
     setMenuOpen(false)
-    setLastRoute(location.pathname + location.search + location.hash)
+    setLastRoute(location.pathname + location.search)
   }, [location, setLastRoute])
+
+  const switchPath = (path: LearningPathId) => {
+    setActivePath(path)
+  }
 
   return (
     <div className="app-shell">
@@ -30,18 +35,41 @@ export function AppShell() {
           <span className="brand-mark">ISC</span>
           <span className="brand-text">
             <span className="brand-title">Developer Curriculum</span>
-            <span className="brand-sub">Conversational fluency · Jul 2026</span>
+            <span className="brand-sub">
+              {activePath === 'fluency' ? 'Path A · Fluency' : 'Path B · Implementation'} · Jul
+              2026
+            </span>
           </span>
         </NavLink>
-        <button
-          type="button"
-          className="icon-btn menu-toggle"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((o) => !o)}
-        >
-          {menuOpen ? '✕' : '☰'}
-        </button>
+        <div className="topbar-actions">
+          {pathChosen ? (
+            <div className="path-switch" role="group" aria-label="Learning path">
+              <button
+                type="button"
+                className={activePath === 'fluency' ? 'active' : undefined}
+                onClick={() => switchPath('fluency')}
+              >
+                Fluency
+              </button>
+              <button
+                type="button"
+                className={activePath === 'implementation' ? 'active' : undefined}
+                onClick={() => switchPath('implementation')}
+              >
+                Implement
+              </button>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="icon-btn menu-toggle"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? '✕' : '☰'}
+          </button>
+        </div>
       </header>
 
       <nav className={`sidebar ${menuOpen ? 'open' : ''}`} aria-label="Primary">
@@ -68,24 +96,51 @@ export function AppShell() {
           Progress tracker
         </NavLink>
 
-        <div className="nav-label">Phases</div>
-        {phases.map((p) => (
-          <NavLink
-            key={p.id}
-            to={`/phase/${p.id}`}
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-          >
-            <span className="num">{p.number}</span>
-            {p.shortTitle}
-          </NavLink>
-        ))}
+        {activePath === 'fluency' ? (
+          <>
+            <div className="nav-label">Path A · Phases</div>
+            {phases.map((p) => (
+              <NavLink
+                key={p.id}
+                to={`/phase/${p.id}`}
+                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+              >
+                <span className="num">{p.number}</span>
+                {p.shortTitle}
+              </NavLink>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="nav-label">Path B · Tracks</div>
+            {tracks.map((t) => (
+              <details key={t.id} className="nav-track track-group" open>
+                <summary>{t.shortTitle}</summary>
+                {t.moduleIds.map((mid) => {
+                  const mod = implementationModules.find((m) => m.id === mid)
+                  if (!mod) return null
+                  return (
+                    <NavLink
+                      key={mid}
+                      to={`/module/${mid}`}
+                      className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                    >
+                      <span className="num">M{mod.number}</span>
+                      {mod.shortTitle}
+                    </NavLink>
+                  )
+                })}
+              </details>
+            ))}
+          </>
+        )}
 
         <div className="nav-label">Practice</div>
         <NavLink to="/drills" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-          Conversational drills
+          Drills
         </NavLink>
         <NavLink to="/labs" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-          Guided labs
+          Labs
         </NavLink>
       </nav>
 

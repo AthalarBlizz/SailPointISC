@@ -1,22 +1,49 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { allDrills, phases } from '../content'
+import {
+  allDrills,
+  phases,
+  implementationModules,
+  allImplementationDrills,
+} from '../content'
 import { useProgress } from '../hooks/useProgress'
 
 export function DrillsPage() {
   const [params, setParams] = useSearchParams()
-  const phaseFilter = params.get('phase') ?? 'all'
-  const { progress, setDrillRating } = useProgress()
+  const filter = params.get('phase') ?? params.get('module') ?? 'all'
+  const { progress, setDrillRating, activePath } = useProgress()
+
   const drills = useMemo(() => {
-    const all = allDrills()
-    if (phaseFilter === 'weak') {
+    if (activePath === 'fluency') {
+      const all = allDrills()
+      if (filter === 'weak') {
+        return all.filter((d) => progress.drillRatings[d.id] === 'needs-work')
+      }
+      if (filter !== 'all') {
+        return all.filter((d) => d.phaseId === filter)
+      }
+      return all.map((d) => ({
+        ...d,
+        scopeLabel: d.phaseTitle,
+      }))
+    }
+    const all = allImplementationDrills().map((d) => {
+      const mod = implementationModules.find((m) => m.id === d.moduleId)
+      return {
+        ...d,
+        phaseId: d.moduleId,
+        phaseTitle: mod ? `M${mod.number}` : d.moduleId,
+        scopeLabel: mod ? `M${mod.number} ${mod.shortTitle}` : d.moduleId,
+      }
+    })
+    if (filter === 'weak') {
       return all.filter((d) => progress.drillRatings[d.id] === 'needs-work')
     }
-    if (phaseFilter !== 'all') {
-      return all.filter((d) => d.phaseId === phaseFilter)
+    if (filter !== 'all') {
+      return all.filter((d) => d.moduleId === filter)
     }
     return all
-  }, [phaseFilter, progress.drillRatings])
+  }, [activePath, filter, progress.drillRatings])
 
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
@@ -24,34 +51,49 @@ export function DrillsPage() {
 
   const go = (next: number) => {
     setRevealed(false)
+    if (drills.length === 0) return
     setIndex(((next % drills.length) + drills.length) % drills.length)
   }
+
+  const scopeOptions =
+    activePath === 'fluency'
+      ? phases.map((p) => ({ value: p.id, label: `Phase ${p.number}: ${p.shortTitle}` }))
+      : implementationModules.map((m) => ({
+          value: m.id,
+          label: `M${m.number}: ${m.shortTitle}`,
+        }))
 
   return (
     <div>
       <header className="page-header">
-        <span className="eyebrow">Self-rated flashcards</span>
-        <h1>Conversational drills</h1>
+        <span className="eyebrow">
+          {activePath === 'fluency' ? 'Path A · Fluency' : 'Path B · Implementation'}
+        </span>
+        <h1>Drills</h1>
         <p className="muted">
-          Reveal the model answer, then rate yourself. “Needs work” builds your weak queue.
+          Reveal the model answer, then rate yourself. “Needs work” builds your weak queue for
+          this path.
         </p>
         <div className="actions" style={{ marginTop: '0.75rem' }}>
           <select
             className="lab-input"
             style={{ width: 'auto', minWidth: '12rem' }}
-            value={phaseFilter}
+            value={filter}
             onChange={(e) => {
-              setParams(e.target.value === 'all' ? {} : { phase: e.target.value })
+              const v = e.target.value
+              if (v === 'all') setParams({})
+              else if (activePath === 'fluency') setParams({ phase: v })
+              else setParams({ module: v })
               setIndex(0)
               setRevealed(false)
             }}
             aria-label="Filter drills"
           >
-            <option value="all">All phases</option>
+            <option value="all">All</option>
             <option value="weak">Needs work only</option>
-            {phases.map((p) => (
-              <option key={p.id} value={p.id}>
-                Phase {p.number}: {p.shortTitle}
+            {scopeOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>
@@ -61,7 +103,7 @@ export function DrillsPage() {
       {!current ? (
         <div className="card">
           <p>
-            {phaseFilter === 'weak'
+            {filter === 'weak'
               ? 'No weak items yet — practice a few drills and mark some as Needs work.'
               : 'No drills in this filter.'}
           </p>
@@ -72,12 +114,18 @@ export function DrillsPage() {
       ) : (
         <div className="card drill-card">
           <div className="meta-row">
-            <span className="chip">{current.phaseTitle}</span>
+            <span className="chip">
+              {'scopeLabel' in current && current.scopeLabel
+                ? String(current.scopeLabel)
+                : current.phaseTitle}
+            </span>
             <span className="chip">
               {index + 1} / {drills.length}
             </span>
             {progress.drillRatings[current.id] ? (
-              <span className={`chip ${progress.drillRatings[current.id] === 'knew' ? 'done' : ''}`}>
+              <span
+                className={`chip ${progress.drillRatings[current.id] === 'knew' ? 'done' : ''}`}
+              >
                 {progress.drillRatings[current.id] === 'knew' ? 'Knew it' : 'Needs work'}
               </span>
             ) : null}

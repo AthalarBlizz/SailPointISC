@@ -1,12 +1,14 @@
 import type { Lab } from './types'
+import { implLabs } from './implementation/implLabs'
 
-export const labs: Lab[] = [
+export const fluencyLabs: Lab[] = [
   {
     id: 'lab-versioning',
     kind: 'versioning',
     title: 'Versioning dual-world mapper',
     description:
       'Map legacy yearly paths to current per-service paths. Tap Reveal when stuck, then mark Correct when you know it cold.',
+    path: 'both',
     items: [
       {
         id: 'v-accounts',
@@ -52,6 +54,7 @@ export const labs: Lab[] = [
     title: 'Filter drill',
     description:
       'Practice standard collection filter syntax. Type your answer, then compare to the model string.',
+    path: 'both',
     items: [
       {
         id: 'f-alias',
@@ -93,6 +96,7 @@ export const labs: Lab[] = [
     title: 'Emergency disable (integration spec)',
     brief:
       'Deliver a language-agnostic REST call sheet + TypeScript sketch using current /…/v1 paths. Compare to scenario1_itdr_disable.py. Resolve lifecycle state by name — never hardcode GUIDs.',
+    path: 'both',
     checklist: [
       'Token via PAT client credentials',
       'Lookup identity by alias (filters)',
@@ -109,6 +113,7 @@ export const labs: Lab[] = [
     title: 'Compliance bridge (SDK automation)',
     brief:
       'Design nightly automation: external CSV → department rules → lifecycle / access request. Python or TypeScript. Dry-run mode required.',
+    path: 'both',
     checklist: [
       'Define CSV schema and department rules',
       'Choose SDK (standalone script)',
@@ -125,6 +130,7 @@ export const labs: Lab[] = [
     title: 'Peer access provisioner',
     brief:
       "Port scenario3's design to SDK 2.x method names (even if you cannot execute). Preserve approval workflows — dry-run then submit.",
+    path: 'both',
     checklist: [
       'Resolve peer and new-hire by alias',
       'Collect peer roles + entitlements',
@@ -140,6 +146,7 @@ export const labs: Lab[] = [
     title: 'Migration advisory',
     brief:
       'Given a fictional inventory (v2024 scripts, v2025 workflows, one /latest job), produce a migration plan citing Q2 2028 / Q1 2029 and SDK migration scripts.',
+    path: 'both',
     checklist: [
       'Inventory legacy yearly + /latest usage',
       'Map paths via official migration table',
@@ -150,6 +157,8 @@ export const labs: Lab[] = [
     ],
   },
 ]
+
+export const labs: Lab[] = [...fluencyLabs, ...implLabs]
 
 export function getLab(id: string): Lab | undefined {
   return labs.find((l) => l.id === id)

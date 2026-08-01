@@ -43,7 +43,7 @@ Secrets use **python-keyring** (macOS Keychain) when you later have a PAT — se
 
 ## Training curriculum (web app)
 
-Interactive reader + progress + conversational drills + guided labs:
+Interactive dual-path reader (Fluency + Senior Implementation):
 
 ```bash
 cd web
@@ -51,9 +51,10 @@ npm install
 npm run dev
 ```
 
-- Editorial markdown: [`docs/curriculum.md`](docs/curriculum.md)
+- **Path A (Fluency):** [`docs/curriculum.md`](docs/curriculum.md)
+- **Path B (Implementation):** [`docs/curriculum/`](docs/curriculum/)
 - App docs: [`web/README.md`](web/README.md)
-- **GitHub Pages:** enable Settings → Pages → Source: GitHub Actions, then push `web/` to `main`. Site: `https://<user>.github.io/SailPointISC/`
+- **GitHub Pages:** `https://athalarblizz.github.io/SailPointISC/`
 
 ---
 

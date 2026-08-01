@@ -9,6 +9,7 @@ import { TrackerPage } from './pages/TrackerPage'
 import { DrillsPage } from './pages/DrillsPage'
 import { LabsIndexPage } from './pages/LabsIndexPage'
 import { LabPage } from './pages/LabPage'
+import { ModulePage } from './pages/ModulePage'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="labs" element={<LabsIndexPage />} />
             <Route path="labs/:labId" element={<LabPage />} />
             <Route path="phase/:phaseId" element={<PhasePage />} />
+            <Route path="module/:moduleId" element={<ModulePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

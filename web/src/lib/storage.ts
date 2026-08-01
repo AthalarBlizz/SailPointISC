@@ -31,12 +31,15 @@ export const localStorageAdapter: StorageAdapter = {
   },
 }
 
-const STORAGE_KEY = 'isc-curriculum-progress-v1'
+const STORAGE_KEY_V1 = 'isc-curriculum-progress-v1'
+const STORAGE_KEY_V2 = 'isc-curriculum-progress-v2'
 
+export type LearningPathId = 'fluency' | 'implementation'
 export type DrillRating = 'knew' | 'needs-work'
 
-export type ProgressState = {
-  completedPhases: string[]
+/** Per-path progress bucket (shared shape for fluency + implementation). */
+export type PathProgress = {
+  completedItems: string[]
   completedTracker: string[]
   lastRoute: string
   drillRatings: Record<string, DrillRating>
@@ -46,8 +49,15 @@ export type ProgressState = {
   filterCorrect: string[]
 }
 
-export const defaultProgress = (): ProgressState => ({
-  completedPhases: [],
+export type DualProgressState = {
+  activePath: LearningPathId
+  pathChosen: boolean
+  fluency: PathProgress
+  implementation: PathProgress
+}
+
+export const defaultPathProgress = (): PathProgress => ({
+  completedItems: [],
   completedTracker: [],
   lastRoute: '/',
   drillRatings: {},
@@ -57,25 +67,97 @@ export const defaultProgress = (): ProgressState => ({
   filterCorrect: [],
 })
 
-export function loadProgress(adapter: StorageAdapter = localStorageAdapter): ProgressState {
-  const raw = adapter.getItem(STORAGE_KEY)
-  if (!raw) return defaultProgress()
+export const defaultDualProgress = (): DualProgressState => ({
+  activePath: 'fluency',
+  pathChosen: false,
+  fluency: defaultPathProgress(),
+  implementation: defaultPathProgress(),
+})
+
+function migrateV1(raw: string): DualProgressState | null {
   try {
-    return { ...defaultProgress(), ...JSON.parse(raw) }
+    const v1 = JSON.parse(raw) as {
+      completedPhases?: string[]
+      completedTracker?: string[]
+      lastRoute?: string
+      drillRatings?: Record<string, DrillRating>
+      labChecks?: Record<string, string[]>
+      labNotes?: Record<string, string>
+      versioningCorrect?: string[]
+      filterCorrect?: string[]
+    }
+    const dual = defaultDualProgress()
+    dual.pathChosen = true
+    dual.activePath = 'fluency'
+    dual.fluency = {
+      ...defaultPathProgress(),
+      completedItems: v1.completedPhases ?? [],
+      completedTracker: v1.completedTracker ?? [],
+      lastRoute: v1.lastRoute ?? '/',
+      drillRatings: v1.drillRatings ?? {},
+      labChecks: v1.labChecks ?? {},
+      labNotes: v1.labNotes ?? {},
+      versioningCorrect: v1.versioningCorrect ?? [],
+      filterCorrect: v1.filterCorrect ?? [],
+    }
+    return dual
   } catch {
-    return defaultProgress()
+    return null
   }
 }
 
-export function saveProgress(
-  state: ProgressState,
+export function loadDualProgress(
   adapter: StorageAdapter = localStorageAdapter,
-): void {
-  adapter.setItem(STORAGE_KEY, JSON.stringify(state))
+): DualProgressState {
+  const v2 = adapter.getItem(STORAGE_KEY_V2)
+  if (v2) {
+    try {
+      const parsed = JSON.parse(v2) as DualProgressState
+      return {
+        ...defaultDualProgress(),
+        ...parsed,
+        fluency: { ...defaultPathProgress(), ...parsed.fluency },
+        implementation: { ...defaultPathProgress(), ...parsed.implementation },
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  const v1 = adapter.getItem(STORAGE_KEY_V1)
+  if (v1) {
+    const migrated = migrateV1(v1)
+    if (migrated) {
+      saveDualProgress(migrated, adapter)
+      return migrated
+    }
+  }
+  return defaultDualProgress()
 }
 
-export function resetProgress(adapter: StorageAdapter = localStorageAdapter): ProgressState {
-  const fresh = defaultProgress()
-  saveProgress(fresh, adapter)
+export function saveDualProgress(
+  state: DualProgressState,
+  adapter: StorageAdapter = localStorageAdapter,
+): void {
+  adapter.setItem(STORAGE_KEY_V2, JSON.stringify(state))
+}
+
+export function resetDualProgress(
+  adapter: StorageAdapter = localStorageAdapter,
+): DualProgressState {
+  const fresh = defaultDualProgress()
+  saveDualProgress(fresh, adapter)
+  adapter.removeItem(STORAGE_KEY_V1)
   return fresh
+}
+
+export function resetActivePathProgress(
+  state: DualProgressState,
+  adapter: StorageAdapter = localStorageAdapter,
+): DualProgressState {
+  const next: DualProgressState = {
+    ...state,
+    [state.activePath]: defaultPathProgress(),
+  }
+  saveDualProgress(next, adapter)
+  return next
 }

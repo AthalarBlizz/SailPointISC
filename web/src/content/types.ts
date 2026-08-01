@@ -1,3 +1,5 @@
+export type LearningPathId = 'fluency' | 'implementation'
+
 export type ContentBlock =
   | { type: 'paragraph'; text: string }
   | { type: 'list'; ordered?: boolean; items: string[] }
@@ -29,6 +31,37 @@ export type Phase = {
   sections: Section[]
   checkpoints: Drill[]
   labs?: string[]
+  /** Path B modules to deepen this phase */
+  deepenModules?: string[]
+}
+
+export type Module = {
+  id: string
+  number: number
+  title: string
+  shortTitle: string
+  estTime: string
+  goal: string
+  trackId: string
+  outcomes: string[]
+  whenToUse: string[]
+  whenNot: string[]
+  sections: Section[]
+  failureModes: string[]
+  enterpriseChecklist: string[]
+  checkpoints: Drill[]
+  labs?: string[]
+  /** Path A phase for fluency refresh */
+  fluencyPhaseId?: string
+}
+
+export type Track = {
+  id: string
+  number: number
+  title: string
+  shortTitle: string
+  description: string
+  moduleIds: string[]
 }
 
 export type SnapshotRow = {
@@ -45,9 +78,10 @@ export type GlossaryEntry = {
 export type TrackerItem = {
   id: string
   label: string
+  path: LearningPathId
 }
 
-export type LabKind = 'versioning' | 'filters' | 'capstone'
+export type LabPathTag = 'fluency' | 'implementation' | 'both'
 
 export type CapstoneLab = {
   id: string
@@ -56,6 +90,7 @@ export type CapstoneLab = {
   letter: string
   brief: string
   checklist: string[]
+  path: LabPathTag
 }
 
 export type VersioningLab = {
@@ -64,6 +99,7 @@ export type VersioningLab = {
   title: string
   description: string
   items: { id: string; legacy: string; modern: string; hint: string }[]
+  path: LabPathTag
 }
 
 export type FilterLab = {
@@ -72,6 +108,26 @@ export type FilterLab = {
   title: string
   description: string
   items: { id: string; prompt: string; answer: string; note?: string }[]
+  path: LabPathTag
 }
 
-export type Lab = CapstoneLab | VersioningLab | FilterLab
+export type ImplementationLab = {
+  id: string
+  kind: 'implementation'
+  title: string
+  description: string
+  steps: string[]
+  acceptance: string[]
+  path: LabPathTag
+}
+
+export type DecisionLab = {
+  id: string
+  kind: 'decision'
+  title: string
+  description: string
+  scenarios: { id: string; prompt: string; answer: string; rationale: string }[]
+  path: LabPathTag
+}
+
+export type Lab = CapstoneLab | VersioningLab | FilterLab | ImplementationLab | DecisionLab

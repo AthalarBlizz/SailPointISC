@@ -225,5 +225,98 @@ export function LabPage() {
     )
   }
 
+  if (lab.kind === 'implementation') {
+    const checks = progress.labChecks[lab.id] ?? []
+    const notes = progress.labNotes[lab.id] ?? ''
+    return (
+      <div>
+        <header className="page-header">
+          <Link to="/labs" className="muted">
+            ← Labs
+          </Link>
+          <span className="eyebrow">Implementation lab</span>
+          <h1>{lab.title}</h1>
+          <p className="lede" style={{ fontSize: '1rem' }}>
+            {lab.description}
+          </p>
+        </header>
+        <section className="section">
+          <h2>Steps</h2>
+          <div className="card">
+            {lab.steps.map((item) => (
+              <label key={item} className="check-row">
+                <input
+                  type="checkbox"
+                  checked={checks.includes(item)}
+                  onChange={() => toggleLabCheck(lab.id, item)}
+                />
+                <span>{item}</span>
+              </label>
+            ))}
+          </div>
+        </section>
+        <section className="section">
+          <h2>Acceptance</h2>
+          <ul>
+            {lab.acceptance.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section className="section">
+          <h2>Your notes</h2>
+          <textarea
+            className="lab-textarea"
+            value={notes}
+            onChange={(e) => setLabNotes(lab.id, e.target.value)}
+            placeholder="Call sheet, code sketch, open questions…"
+          />
+          <p className="muted" style={{ marginTop: '0.5rem' }}>
+            Saved on this device.
+          </p>
+        </section>
+      </div>
+    )
+  }
+
+  if (lab.kind === 'decision') {
+    const notes = progress.labNotes[lab.id] ?? ''
+    return (
+      <div>
+        <header className="page-header">
+          <Link to="/labs" className="muted">
+            ← Labs
+          </Link>
+          <span className="eyebrow">Decision drill</span>
+          <h1>{lab.title}</h1>
+          <p className="muted">{lab.description}</p>
+        </header>
+        {lab.scenarios.map((s) => (
+          <section key={s.id} className="section">
+            <div className="card stack">
+              <p className="drill-prompt">{s.prompt}</p>
+              <details>
+                <summary>Reveal answer</summary>
+                <p>
+                  <strong>{s.answer}</strong>
+                </p>
+                <p className="muted">{s.rationale}</p>
+              </details>
+            </div>
+          </section>
+        ))}
+        <section className="section">
+          <h2>Your notes</h2>
+          <textarea
+            className="lab-textarea"
+            value={notes}
+            onChange={(e) => setLabNotes(lab.id, e.target.value)}
+            placeholder="Your picks and rationale…"
+          />
+        </section>
+      </div>
+    )
+  }
+
   return null
 }

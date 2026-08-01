@@ -16,6 +16,9 @@ These are scripts and automations — not web applications.
 - `docs/isc-development-guide.md` — ISC development patterns and reference (read this for domain context)
 - `docs/getting-started.md` — human setup guide (tenant + PAT)
 - `docs/local-dev-environment.md` — offline/local agentic coding environment
+- `docs/curriculum.md` — Path A conversational fluency curriculum
+- `docs/curriculum/` — Path B senior implementation modules (M0–M20)
+- `web/` — dual-path interactive learning app (Fluency | Implementation)
 
 ---
 

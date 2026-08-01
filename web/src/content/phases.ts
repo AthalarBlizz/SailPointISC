@@ -3,6 +3,7 @@ import type { Phase } from './types'
 export const phases: Phase[] = [
   {
     id: 'phase-0',
+    deepenModules: ['m0', 'm3'],
     number: 0,
     title: 'ISC mental model (conversation baseline)',
     shortTitle: 'Mental model',
@@ -84,6 +85,7 @@ export const phases: Phase[] = [
   },
   {
     id: 'phase-1',
+    deepenModules: ['m1'],
     number: 1,
     title: 'Authentication, authorization, and HTTP craft',
     shortTitle: 'Auth & HTTP',
@@ -179,6 +181,7 @@ export const phases: Phase[] = [
   },
   {
     id: 'phase-2',
+    deepenModules: ['m2'],
     number: 2,
     title: 'Versioning dual-world (most important fluency upgrade)',
     shortTitle: 'Versioning',
@@ -290,6 +293,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-3',
+    deepenModules: ['m5', 'm6', 'm7'],
     number: 3,
     title: 'Domain API fluency (what to call for what)',
     shortTitle: 'Domain APIs',
@@ -360,6 +364,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-4',
+    deepenModules: ['m8'],
     number: 4,
     title: 'TypeScript as a first-class ISC language',
     shortTitle: 'TypeScript',
@@ -440,6 +445,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-5',
+    deepenModules: ['m4', 'm9', 'm10', 'm11'],
     number: 5,
     title: 'Other official SDKs and direct REST',
     shortTitle: 'SDK choices',
@@ -493,6 +499,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-6',
+    deepenModules: ['m12', 'm13', 'm14', 'm15', 'm16'],
     number: 6,
     title: 'Extensibility map (beyond calling APIs)',
     shortTitle: 'Extensibility',
@@ -574,6 +581,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-7',
+    deepenModules: ['m17', 'm18'],
     number: 7,
     title: 'Production craft',
     shortTitle: 'Production',
@@ -618,6 +626,7 @@ const accounts = await api.listAccountsV1({ limit: 10 });
   },
   {
     id: 'phase-8',
+    deepenModules: ['m19', 'm20'],
     number: 8,
     title: 'Capstones & fluency drills',
     shortTitle: 'Capstones',

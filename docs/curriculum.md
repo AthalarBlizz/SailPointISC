@@ -1,13 +1,16 @@
 # SailPoint ISC Developer Curriculum
-## Conversational fluency for API, TypeScript, and other code integrations
+## Path A — Conversational fluency for API, TypeScript, and other code integrations
 
 **Currency date:** 2026-07-31  
 **Audience:** Developers learning to speak and build confidently around SailPoint Identity Security Cloud (ISC) APIs and SDKs — without requiring a live tenant for most modules.  
 **Outcome:** You can hold a technical conversation with ISC developers, choose the right integration approach, read specs accurately, and write TypeScript / Python / REST integrations that match current SailPoint guidance.
 
+> **Dual paths:** This file is **Path A (Conversational fluency)**. For the senior enterprise **implementation** curriculum (REST, all SDKs, CLI, transforms, rules, workflows, connectors, customizers), see [`docs/curriculum/`](curriculum/) — **Path B**. The [web app](../web/) lets you choose a path and swap anytime; progress is saved separately.
+
 **How to use this with your local sandbox:** Activate `.venv`, keep `api-specs/` current, and use Cursor Agent mode against `CLAUDE.md` + specs. Live tenant exercises are marked **[TENANT]** and are optional until you have access.
 
-**Interactive web app:** Practice on phone or desktop via the app in [`web/`](../web/) (`npm run dev`, or GitHub Pages after deploy). Progress and lab notes save in the browser.
+**Interactive web app:** Practice on phone or desktop via the app in [`web/`](../web/) (`npm run dev`, or GitHub Pages). Pick Fluency or Implementation on first launch.
+
 
 ---
 

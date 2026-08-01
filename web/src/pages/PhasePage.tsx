@@ -1,12 +1,12 @@
 import { Link, useParams } from 'react-router-dom'
-import { getPhase, phases, getLab } from '../content'
+import { getPhase, phases, getLab, getModule } from '../content'
 import { ContentBlocks } from '../components/ContentBlocks'
 import { useProgress } from '../hooks/useProgress'
 
 export function PhasePage() {
   const { phaseId } = useParams()
   const phase = getPhase(phaseId ?? '')
-  const { progress, togglePhaseComplete } = useProgress()
+  const { progress, toggleItemComplete, setActivePath } = useProgress()
 
   if (!phase) {
     return (
@@ -20,19 +20,21 @@ export function PhasePage() {
   const idx = phases.findIndex((p) => p.id === phase.id)
   const prev = idx > 0 ? phases[idx - 1] : null
   const next = idx < phases.length - 1 ? phases[idx + 1] : null
-  const done = progress.completedPhases.includes(phase.id)
+  const done = progress.completedItems.includes(phase.id)
 
   return (
     <div>
       <header className="page-header">
-        <span className="eyebrow">Phase {phase.number} · {phase.estTime}</span>
+        <span className="eyebrow">
+          Phase {phase.number} · {phase.estTime}
+        </span>
         <h1>{phase.title}</h1>
         <p className="muted">{phase.goal}</p>
         <div className="actions" style={{ marginTop: '1rem' }}>
           <button
             type="button"
             className={done ? 'btn btn-success' : 'btn btn-primary'}
-            onClick={() => togglePhaseComplete(phase.id)}
+            onClick={() => toggleItemComplete(phase.id)}
           >
             {done ? 'Marked complete' : 'Mark phase complete'}
           </button>
@@ -69,11 +71,39 @@ export function PhasePage() {
                 <Link key={labId} to={`/labs/${labId}`} className="card card-link">
                   <h3>{lab.title}</h3>
                   <p className="muted">
-                    {lab.kind === 'capstone' ? lab.brief.slice(0, 120) + '…' : lab.description}
+                    {lab.kind === 'capstone'
+                      ? lab.brief.slice(0, 120) + '…'
+                      : 'description' in lab
+                        ? lab.description
+                        : ''}
                   </p>
                 </Link>
               )
             })}
+          </div>
+        </section>
+      ) : null}
+
+      {phase.deepenModules && phase.deepenModules.length > 0 ? (
+        <section className="section">
+          <div className="callout tip">
+            <strong>Go deeper (Path B)</strong>
+            <ul className="block-list" style={{ marginTop: '0.5rem' }}>
+              {phase.deepenModules.map((mid) => {
+                const mod = getModule(mid)
+                if (!mod) return null
+                return (
+                  <li key={mid}>
+                    <Link
+                      to={`/module/${mid}`}
+                      onClick={() => setActivePath('implementation')}
+                    >
+                      M{mod.number}: {mod.shortTitle}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
           </div>
         </section>
       ) : null}

@@ -1,0 +1,92 @@
+.path-switch {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem;
+  background: var(--bg-elevated);
+  gap: 0.15rem;
+}
+
+.path-switch button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  min-height: 36px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.path-switch button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.path-picker {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .path-picker {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.path-card {
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  appearance: none;
+  color: inherit;
+  font: inherit;
+}
+
+.path-card:hover {
+  border-color: var(--accent);
+}
+
+.path-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.track-group {
+  margin-bottom: 0.5rem;
+}
+
+details.nav-track {
+  border-radius: 10px;
+}
+
+details.nav-track > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.55rem 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+details.nav-track > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .path-switch button {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+  }
+}
